@@ -17,9 +17,9 @@ void print_string2(const char *msg, size_t len, snLogLevel level, void *data) {
 int main(void) {
     snStaticLogger sl;
 
-    snStaticSink sink[] = {
-        (snStaticSink){.fn = print_string},
-        (snStaticSink){.fn = print_string2}
+    snSink sink[] = {
+        (snSink){.write = print_string},
+        (snSink){.write = print_string2}
     };
 
     sn_static_logger_init(&sl, buffer, BUFFER_LEN, sink, 2);
@@ -27,4 +27,6 @@ int main(void) {
     sn_static_logger_log(&sl, SN_LOG_LEVEL_INFO, "Hello, World!");
 
     sn_static_logger_log_raw(&sl, SN_LOG_LEVEL_INFO, "Hello", 5);
+
+    sn_static_logger_deinit(&sl);
 }
