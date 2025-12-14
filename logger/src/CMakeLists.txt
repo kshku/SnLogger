@@ -1,9 +1,11 @@
 set(HEADERFILES
-    test.h
+    platform.h
+    defines.h
+    snlogger.h
 )
 
 set(SRCS
-    test.c
+    snlogger.c
 )
 
 set(INCLUDE_BASE "${PROJECT_SOURCE_DIR}/logger/include/snlogger")
