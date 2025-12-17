@@ -44,10 +44,16 @@ void sn_static_logger_log(snStaticLogger *logger, snLogLevel level, const char *
 
     va_list args;
     va_start(args, fmt);
-
     size_t len = format_string(logger->buffer, logger->buffer_size, fmt, args);
-
     va_end(args);
+
+    if (len >= logger->buffer_size) {
+        len = logger->buffer_size - 1;
+        logger->truncated++;
+    } else if (len == 0) {
+        logger->dropped++;
+        return;
+    }
 
     emit_to_all_sinks(logger, len, level);
 
@@ -57,6 +63,14 @@ void sn_static_logger_log_va(snStaticLogger *logger, snLogLevel level, const cha
     if (level < logger->level) return;
 
     size_t len = format_string(logger->buffer, logger->buffer_size, fmt, args);
+
+    if (len >= logger->buffer_size) {
+        len = logger->buffer_size - 1;
+        logger->truncated++;
+    } else if (len == 0) {
+        logger->dropped++;
+        return;
+    }
 
     emit_to_all_sinks(logger, len, level);
 }

@@ -7,11 +7,11 @@
 char buffer[BUFFER_LEN];
 
 void print_string(const char *msg, size_t len, snLogLevel level, void *data) {
-    puts(msg);
+    printf("%.*s\n", len, msg);
 }
 
 void print_string2(const char *msg, size_t len, snLogLevel level, void *data) {
-    printf("Log level: %d, message: %s\n", level, msg);
+    printf("Log level: %d, message: %.*s\n", level, len, msg);
 }
 
 int main(void) {

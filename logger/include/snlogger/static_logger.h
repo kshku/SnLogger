@@ -14,13 +14,14 @@
  * snStaticLogger formats log messages into a shared buffer and immediately
  * emits them to all configured sinks.
  *
- * Characteristics: * - Synchronous (no background threads)
+ * Characteristics:
+ * - Synchronous execution
+ * - No internal locking
  * - Not thread-safe
  * - Uses a single shared formatting buffer
- * - Sink behavior (blocking, buffering, async) is sink-defined
  *
- * The logger does not perform any internal locking or buffering beyond
- * formatting into the provided buffer.
+ * The logger performs no dynamic allocation and does not retain log records
+ * after emission.
  */
 typedef struct snStaticLogger {
     char *buffer; /**< The buffer used by logger */
@@ -31,8 +32,8 @@ typedef struct snStaticLogger {
 
     snLogLevel level; /**< The global log level threashold */
 
-    // size_t dropped;
-    // size_t truncated;
+    size_t dropped; /**< Number of logs dropped */
+    size_t truncated; /**< Number of logs truncated */
 } snStaticLogger;
 
 /**
@@ -95,9 +96,11 @@ void sn_static_logger_set_level(snStaticLogger *logger, snLogLevel level);
  * @param fmt printf-style format string
  * @param ... Format arguments
  *
- * @note If `level` is below the logger's current level, the call is ignored.
- * @note This function is not thread-safe.
- */void sn_static_logger_log(snStaticLogger *logger, snLogLevel level, const char *fmt, ...);
+ * @note Messages below the current log level are ignored.
+ * @note Not thread-safe.
+ * @note Messages may be truncated if teh buffer is too small.
+ */
+void sn_static_logger_log(snStaticLogger *logger, snLogLevel level, const char *fmt, ...);
 
 /**
  * @brief Log a formatted message using a va_list.
@@ -110,7 +113,8 @@ void sn_static_logger_set_level(snStaticLogger *logger, snLogLevel level);
  * @param args Format arguments as va_list
  *
  * @note The va_list is consumed by this function.
- */void sn_static_logger_log_va(snStaticLogger *logger, snLogLevel level, const char *fmt, va_list args);
+ */
+void sn_static_logger_log_va(snStaticLogger *logger, snLogLevel level, const char *fmt, va_list args);
 
 /**
  * @brief Log a raw message without formatting.

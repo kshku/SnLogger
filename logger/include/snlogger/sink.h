@@ -9,10 +9,10 @@
  *
  * Writes a single log record to the sink.
  *
- * @param msg   Pointer to the log message buffer
- * @param len   Length of the message in bytes
+ * @param msg Pointer to the log message buffer
+ * @param len Length of the message in bytes
  * @param level Log level of the message
- * @param data  User-defined sink data
+ * @param data User-defined sink data
  *
  * @note The message is not guaranteed to be null-terminated.
  * @note The sink must not read beyond @p len bytes.
@@ -26,10 +26,11 @@
 typedef void (*snSinkWriteFn)(const char *msg, size_t len, snLogLevel level, void *data);
 
 /**
- * @brief Open sink function for logger.
+ * @brief Sink open callback.
  *
  * Called once during logger initialization.
- * Can be used to initialize sink state, open files, or start threads.
+ *
+ * Can be used to initialize sink state, open files, or prepare ersources.
  *
  * @param data User-defined sink data
  *
@@ -42,10 +43,11 @@ typedef void (*snSinkWriteFn)(const char *msg, size_t len, snLogLevel level, voi
 typedef void (*snSinkOpenFn)(void *data);
 
 /**
- * @brief Close sink function for logger.
+ * @brief Sink close callback.
  *
- * Called once during logger deinitialization, after flush.
- * Can be used to release sink resources, close files, or stop threads.
+ * Called once during logger deinitialization, after flushing.
+ *
+ * Can be used to release resources or close files.
  *
  * @param data User-defined sink data
  *
@@ -58,7 +60,7 @@ typedef void (*snSinkOpenFn)(void *data);
 typedef void (*snSinkCloseFn)(void *data);
 
 /**
- * @brief Flush sink function for logger.
+ * @brief Sink flush callback.
  *
  * Flushes any internal sink buffers.
  *
@@ -80,7 +82,7 @@ typedef void (*snSinkFlushFn)(void *data);
  * @struct snSink sink.h <snlogger/sink.h>
  * @brief Log output sink.
  *
- * A sink represents a destination for log records
+ * A sink represents a destination for log records.
  *
  * The logger does not impose any threading, buffering, or blocking behavior.
  * All such behavior is defined entirely by the sink implementation.
