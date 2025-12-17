@@ -117,7 +117,8 @@ void sn_async_logger_log_va(snAsyncLogger *logger, snLogLevel level, const char 
 
     va_list args_copy;
     va_copy(args_copy, args);
-    size_t len = format_string(NULL, 0, fmt, args_copy);
+    // TODO: Temporary fix: vsnprintf writes upto len bytes including null character
+    size_t len = format_string(NULL, 0, fmt, args_copy) + 1;
     va_end(args_copy);
     if (len == 0) {
         logger->dropped++;
