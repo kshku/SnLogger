@@ -1,92 +1,320 @@
+#define _GNU_SOURCE
+
 #include <snlogger/snlogger.h>
 
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <stdatomic.h>
+#include <unistd.h>
+#include <stdbool.h>
 
-#define MAX_LOGS 500
-#define MAX_LEN 256
-#define BUFFER_SIZE 4096
-#define TEST_COUNT 100
-#define TEST_STRING "msg-%d"
-char sbuffer[BUFFER_SIZE];
-char abuffer[BUFFER_SIZE];
+#define MAX_LOGS 100000
+#define MAX_LEN  16
+
+#define STATIC_BUF_SIZE 256
 
 typedef struct {
     char logs[MAX_LOGS][MAX_LEN];
     size_t count;
 } TestSink;
 
-void test_sink_write(const char *msg, size_t len, snLogLevel level, void *data) {
+static void test_sink_write(const char *msg, size_t len, snLogLevel level, void *data) {
+    (void)level;
     TestSink *sink = data;
 
-    if (sink->count >= MAX_LOGS) return;
+    if (sink->count >= MAX_LOGS)
+        return;
 
     size_t copy = len < MAX_LEN - 1 ? len : MAX_LEN - 1;
-    
     memcpy(sink->logs[sink->count], msg, copy);
     sink->logs[sink->count][copy] = 0;
     sink->count++;
 }
 
-void console_log_sink(const char *msg, size_t len, snLogLevel level, void *data) {
-    printf("%.*s\n", len, msg);
+static void *malloc_wrapper(size_t size, void *data) {
+    (void)data;
+    void *p = malloc(size);
+    if (!p) abort();
+    return p;
 }
 
-void *malloc_wrapper(size_t size, void *data) {
-    (void)(data);
-    void *ptr = malloc(size);
-    if (!ptr) exit(EXIT_FAILURE);
-    return ptr;
-}
-
-void free_wrapper(void *ptr, void *data) {
-    (void)(data);
+static void free_wrapper(void *ptr, void *data) {
+    (void)data;
     free(ptr);
 }
 
-int main(void) {
+typedef struct {
+    pthread_mutex_t mutex;
+} MutexCtx;
+
+static void lock_wrapper(void *data) {
+    MutexCtx *ctx = data;
+    pthread_mutex_lock(&ctx->mutex);
+}
+
+static void unlock_wrapper(void *data) {
+    MutexCtx *ctx = data;
+    pthread_mutex_unlock(&ctx->mutex);
+}
+
+static void test_static_basic(void) {
+    printf("Running test_static_basic...\n");
+
+    char buffer[STATIC_BUF_SIZE];
+    TestSink sink = {0};
+
+    snSink sinks[] = {
+        {.write = test_sink_write, .data = &sink}
+    };
+
     snStaticLogger sl;
-    snAsyncLogger al;
+    sn_static_logger_init(&sl, buffer, sizeof(buffer), sinks, 1);
 
-    TestSink tss = {0};
-    TestSink tsa = {0};
-
-    snSink ssinks[] = {
-        {.write = test_sink_write, .data = &tss},
-        // {.write = console_log_sink}
-    };
-    snSink asinks[] = {
-        {.write = test_sink_write, .data = &tsa},
-        // {.write = console_log_sink}
-    };
-
-    sn_static_logger_init(&sl, sbuffer, BUFFER_SIZE, ssinks, (sizeof(ssinks)/sizeof(ssinks[0])));
-    sn_async_logger_init(&al, abuffer, BUFFER_SIZE, asinks, (sizeof(asinks)/sizeof(asinks[0])));
-
-    sn_async_logger_set_memory_hooks(&al, malloc_wrapper, free_wrapper, NULL);
-
-    for (int i = 0; i < TEST_COUNT; ++i) {
-        char msg[32];
-        snprintf(msg, sizeof(msg), TEST_STRING, i);
-        sn_static_logger_log(&sl, SN_LOG_LEVEL_INFO, "%s", msg);
-        sn_async_logger_log(&al, SN_LOG_LEVEL_INFO, "%s", msg);
-        if (i % 5 == 0) sn_async_logger_process(&al);
-    }
+    sn_static_logger_log(&sl, SN_LOG_LEVEL_INFO, "hello");
+    sn_static_logger_log(&sl, SN_LOG_LEVEL_INFO, "world");
 
     sn_static_logger_deinit(&sl);
-    sn_async_logger_deinit(&al);
 
-    assert(tss.count == TEST_COUNT);
-    assert(tsa.count == TEST_COUNT);
+    assert(sink.count == 2);
+    assert(strcmp(sink.logs[0], "hello") == 0);
+    assert(strcmp(sink.logs[1], "world") == 0);
 
-    for (int i = 0; i < TEST_COUNT; ++i) {
-        char expected[32];
-        snprintf(expected, sizeof(expected), TEST_STRING, i);
-        assert(strcmp(tss.logs[i], expected) == 0);
-        assert(strcmp(tsa.logs[i], expected) == 0);
+    printf("✓ passed\n");
+}
+
+static void test_static_truncation(void) {
+    printf("Running test_static_truncation...\n");
+
+    char buffer[32]; // tiny on purpose
+    TestSink sink = {0};
+
+    snSink sinks[] = {
+        {.write = test_sink_write, .data = &sink}
+    };
+
+    snStaticLogger sl;
+    sn_static_logger_init(&sl, buffer, sizeof(buffer), sinks, 1);
+
+    sn_static_logger_log(&sl, SN_LOG_LEVEL_INFO,
+        "this message is definitely too long to fit");
+
+    sn_static_logger_deinit(&sl);
+
+    assert(sink.count == 1);
+    assert(strlen(sink.logs[0]) > 0); // something was printed
+
+    printf("✓ passed\n");
+}
+
+static void test_static_log_level(void) {
+    printf("Running test_static_log_level...\n");
+
+    char buffer[STATIC_BUF_SIZE];
+    TestSink sink = {0};
+
+    snSink sinks[] = {
+        {.write = test_sink_write, .data = &sink}
+    };
+
+    snStaticLogger sl;
+    sn_static_logger_init(&sl, buffer, sizeof(buffer), sinks, 1);
+
+    sn_static_logger_set_level(&sl, SN_LOG_LEVEL_WARN);
+
+    sn_static_logger_log(&sl, SN_LOG_LEVEL_INFO, "info");
+    sn_static_logger_log(&sl, SN_LOG_LEVEL_ERROR, "error");
+
+    sn_static_logger_deinit(&sl);
+
+    assert(sink.count == 1);
+    assert(strcmp(sink.logs[0], "error") == 0);
+
+    printf("✓ passed\n");
+}
+
+static void test_async_single_thread_ordering(void) {
+    printf("Running test_async_single_thread_ordering...\n");
+
+    char buffer[4096];
+    TestSink sink = {0};
+
+    snSink sinks[] = {
+        {.write = test_sink_write, .data = &sink}
+    };
+
+    snAsyncLogger al;
+    sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
+    sn_async_logger_set_memory_hooks(&al, malloc_wrapper, free_wrapper, NULL);
+
+    for (int i = 0; i < 1000; ++i) {
+        sn_async_logger_log(&al, SN_LOG_LEVEL_INFO, "msg-%d", i);
+        if (i % 7 == 0)
+            sn_async_logger_process(&al);
     }
 
-    printf("Ordering test passed\n");
+    sn_async_logger_deinit(&al);
+
+    assert(sink.count == 1000);
+
+    for (int i = 0; i < 1000; ++i) {
+        char expected[32];
+        snprintf(expected, sizeof(expected), "msg-%d", i);
+        assert(strcmp(sink.logs[i], expected) == 0);
+    }
+
+    printf("✓ passed\n");
 }
+
+static void test_async_drop_behavior(void) {
+    printf("Running test_async_drop_behavior...\n");
+
+    char buffer[256]; // intentionally tiny
+    TestSink sink = {0};
+
+    snSink sinks[] = {
+        {.write = test_sink_write, .data = &sink}
+    };
+
+    snAsyncLogger al;
+    sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
+
+    for (int i = 0; i < 1000; ++i) {
+        sn_async_logger_log(&al, SN_LOG_LEVEL_INFO, "long-message-%d-xxxxxxxxxxxxxxxx", i);
+    }
+
+    sn_async_logger_deinit(&al);
+
+    assert(sink.count > 0);
+    assert(al.dropped > 0);
+
+    printf("✓ passed (dropped=%zu)\n", al.dropped);
+}
+
+static atomic_uint_fast64_t global_seq = 1;
+
+typedef struct {
+    snAsyncLogger *logger;
+    int thread_id;
+    int count;
+} ProducerArgs;
+
+static void *producer_thread(void *arg) {
+    ProducerArgs *pa = arg;
+
+    for (int i = 0; i < pa->count; ++i) {
+        uint64_t seq = atomic_fetch_add(&global_seq, 1);
+        sn_async_logger_log(
+            pa->logger,
+            SN_LOG_LEVEL_INFO,
+            "%lu t%d-%d",
+            seq,
+            pa->thread_id,
+            i
+        );
+    }
+    return NULL;
+}
+
+typedef struct {
+    snAsyncLogger *logger;
+    atomic_int *done;
+} ConsumerArgs;
+
+static void *consumer_thread(void *arg) {
+    ConsumerArgs *ca = arg;
+
+    while (!atomic_load(ca->done)) {
+        sn_async_logger_process(ca->logger);
+        usleep(1000); // 1ms
+    }
+
+    // Final drain
+    while (sn_async_logger_process(ca->logger));
+    return NULL;
+}
+
+static void test_async_multi_producer_ordering(void) {
+    printf("Running test_async_multi_producer_ordering...\n");
+
+    enum {
+        PRODUCERS = 4,
+        MSGS_PER_PRODUCER = 5000
+    };
+
+    char buffer[16384];
+    TestSink sink = {0};
+
+    snSink sinks[] = {
+        {.write = test_sink_write, .data = &sink}
+    };
+
+    snAsyncLogger al;
+    sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
+    sn_async_logger_set_memory_hooks(&al, malloc_wrapper, free_wrapper, NULL);
+
+    MutexCtx mctx;
+    pthread_mutex_init(&mctx.mutex, NULL);
+    sn_async_logger_set_lock_hooks(&al, lock_wrapper, unlock_wrapper, &mctx);
+
+    pthread_t prod[PRODUCERS];
+    ProducerArgs pargs[PRODUCERS];
+
+    atomic_int done = 0;
+    ConsumerArgs cargs = {.logger = &al, .done = &done};
+    pthread_t consumer;
+
+    pthread_create(&consumer, NULL, consumer_thread, &cargs);
+
+    for (int i = 0; i < PRODUCERS; ++i) {
+        pargs[i] = (ProducerArgs){
+            .logger = &al,
+            .thread_id = i,
+            .count = MSGS_PER_PRODUCER
+        };
+        pthread_create(&prod[i], NULL, producer_thread, &pargs[i]);
+    }
+
+    for (int i = 0; i < PRODUCERS; ++i)
+        pthread_join(prod[i], NULL);
+
+    atomic_store(&done, 1);
+    pthread_join(consumer, NULL);
+
+    sn_async_logger_deinit(&al);
+    pthread_mutex_destroy(&mctx.mutex);
+
+    size_t expected = PRODUCERS * MSGS_PER_PRODUCER;
+    bool found_seq[PRODUCERS * MSGS_PER_PRODUCER] = {0};
+
+    assert(sink.count == expected);
+
+    for (size_t i = 0; i < sink.count; ++i) {
+        uint64_t seq;
+        assert(sscanf(sink.logs[i], "%lu", &seq) == 1);
+        assert(!found_seq[seq]);
+        found_seq[seq] = true;
+    }
+
+    printf("✓ passed\n");
+}
+
+int main(void) {
+    test_static_basic();
+    test_static_truncation();
+    test_static_log_level();
+
+    printf("All static logger tests passed!\n\n");
+
+    test_async_single_thread_ordering();
+    test_async_multi_producer_ordering();
+    test_async_drop_behavior();
+
+    printf("All async logger tests passed!\n\n");
+
+    printf("All tests passed\n");
+    return 0;
+}
+

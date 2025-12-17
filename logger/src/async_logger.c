@@ -20,17 +20,21 @@ static snLogRecordHeader *ring_buffer_allocate(snAsyncLogger *logger, size_t siz
 
     if (free < size) return NULL;
 
-    if (logger->write_offset + size <= logger->buffer_size) {
-        void *p = logger->buffer + logger->write_offset;
+    if ((logger->write_offset >= logger->read_offset && logger->write_offset + size <= logger->buffer_size) || 
+            (logger->write_offset < logger->read_offset && logger->write_offset + size < logger->read_offset)) {
+        void *p = ((char *)logger->buffer) + logger->write_offset;
         logger->write_offset += size;
-        return p;
+        return (snLogRecordHeader *)p;
     }
 
-    if (logger->read_offset >= size) {
+    if (logger->write_offset >= logger->read_offset && logger->read_offset > size) {
         // Write the wrap mark
-        ((snLogRecordHeader *)(logger->buffer + logger->write_offset))->level = SN_LOG_LEVEL_FATAL + 1;
+        if (logger->buffer_size - logger->write_offset >= sizeof(snLogRecordHeader)) {
+            snLogRecordHeader *wrap_mark = (snLogRecordHeader *)(((char *)logger->buffer) + logger->write_offset);
+            wrap_mark->level = SN_LOG_LEVEL_FATAL + 1;
+        }
         logger->write_offset = size;
-        return logger->buffer;
+        return (snLogRecordHeader *)logger->buffer;
     }
 
     return NULL;
@@ -193,7 +197,12 @@ size_t sn_async_logger_process(snAsyncLogger *logger) {
     async_logger_lock(logger);
 
     while (logger->read_offset != logger->write_offset) {
+        if (logger->buffer_size - logger->read_offset < sizeof(snLogRecordHeader))
+            // Next record should start from 0 itself
+            logger->read_offset = 0;
+
         snLogRecordHeader *record = (snLogRecordHeader *)(logger->buffer + logger->read_offset);
+
         // Check for wrap mark
         if (record->level == SN_LOG_LEVEL_FATAL + 1) {
             logger->read_offset = 0;
@@ -214,9 +223,6 @@ size_t sn_async_logger_process(snAsyncLogger *logger) {
         async_logger_lock(logger);
 
         logger->read_offset += sizeof(snLogRecordHeader) + record->len;
-        if (logger->read_offset >= logger->buffer_size)
-            // Next record should start from 0 itself
-            logger->read_offset = 0;
     }
 
     while (logger->heap_head) {
