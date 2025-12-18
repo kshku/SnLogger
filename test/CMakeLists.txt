@@ -23,3 +23,9 @@ target_link_libraries(test1 PRIVATE snlogger)
 
 add_executable(test2 test2.c)
 target_link_libraries(test2 PRIVATE snlogger)
+
+add_executable(formatting formatting.c)
+target_link_libraries(formatting PRIVATE snlogger)
+
+add_executable(example_formatting example_formatting.c)
+target_link_libraries(example_formatting PRIVATE snlogger)

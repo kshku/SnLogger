@@ -2,7 +2,11 @@
 
 SnLogger is a C logging library.
 
-It provides static and asynchronous loggers.
+It provides static and asynchronous loggers and focuses on log transport,
+buffering, and sink dispatch rather than formatting and other things.
+
+SnLogger does not provide a built-in layout or formatting system; message
+formatting is expected to be layered on top or implemented in sinks.
 
 The library does not create threads, or perform implicit I/O.
 All processing, flushing, memory allocation, and synchronization
@@ -178,4 +182,6 @@ int main(void) {
     sn_async_logger_deinit(&logger);
 }
 ```
+
+***Checkout `test/example_formatting.c`***
 
