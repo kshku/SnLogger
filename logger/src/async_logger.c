@@ -192,63 +192,7 @@ void sn_async_logger_log_raw(snAsyncLogger *logger, snLogLevel level, const char
 }
 
 size_t sn_async_logger_process(snAsyncLogger *logger) {
-    size_t count = 0;
-
-    async_logger_lock(logger);
-
-    while (logger->read_offset != logger->write_offset) {
-        if (logger->buffer_size - logger->read_offset < sizeof(snLogRecordHeader))
-            // Next record should start from 0 itself
-            logger->read_offset = 0;
-
-        snLogRecordHeader *record = (snLogRecordHeader *)(((char *)logger->buffer) + logger->read_offset);
-
-        // Check for wrap mark
-        if (record->level == SN_LOG_LEVEL_FATAL + 1) {
-            logger->read_offset = 0;
-            continue;
-        }
-
-        // maintain the order
-        if (logger->processed_timestamp + 1 != record->timestamp) break;
-        logger->processed_timestamp = record->timestamp; // or just logger->processed_timestamp++;
-
-        async_logger_unlock(logger);
-
-        for (size_t i = 0; i < logger->sink_count; ++i)
-            logger->sinks[i].write((const char *)(record + 1), record->len, record->level, logger->sinks[i].data);
-
-        ++count;
-
-        async_logger_lock(logger);
-
-        logger->read_offset += sizeof(snLogRecordHeader) + record->len;
-    }
-
-    while (logger->heap_head) {
-        snLogRecordHeapNode *node = logger->heap_head;
-        // maintain the order
-        if (logger->processed_timestamp + 1 != node->record->timestamp) break;
-        logger->processed_timestamp = node->record->timestamp; // or just logger->processed_timestamp++;
-
-        logger->heap_head = node->next;
-
-        if (!logger->heap_head) logger->heap_tail = NULL;
-
-        async_logger_unlock(logger);
-
-        for (size_t i = 0; i < logger->sink_count; ++i)
-            logger->sinks[i].write((const char *)(node->record + 1), node->record->len, node->record->level, logger->sinks[i].data);
-
-        if (logger->free) logger->free(node, logger->mem_data);
-        ++count;
-
-        async_logger_lock(logger);
-    }
-
-    async_logger_unlock(logger);
-
-    return count;
+    return sn_async_logger_process_n(logger, -1);
 }
 
 size_t sn_async_logger_process_n(snAsyncLogger *logger, size_t n) {
