@@ -1,5 +1,7 @@
 #pragma once
 
+#include "snlogger/defines.h"
+
 #include "snlogger/log_level.h"
 #include "snlogger/sink.h"
 
@@ -53,7 +55,7 @@ typedef struct snStaticLogger {
  * @note The buffer and sinks must remain valid for the lifetime of the logger.
  * @note This function does not allocate memory.
  */
-void sn_static_logger_init(snStaticLogger *logger, char *buffer, size_t buffer_size,
+SN_API void sn_static_logger_init(snStaticLogger *logger, char *buffer, size_t buffer_size,
         snSink *sinks, size_t sink_count);
 
 /**
@@ -65,7 +67,7 @@ void sn_static_logger_init(snStaticLogger *logger, char *buffer, size_t buffer_s
  *
  * @param logger Pointer to the logger context
  */
-void sn_static_logger_deinit(snStaticLogger *logger);
+SN_API void sn_static_logger_deinit(snStaticLogger *logger);
 
 /**
  * @brief Flush all sinks.
@@ -74,7 +76,7 @@ void sn_static_logger_deinit(snStaticLogger *logger);
  *
  * @param logger Pointer to the logger context
  */
-void sn_static_logger_flush(snStaticLogger *logger);
+SN_API void sn_static_logger_flush(snStaticLogger *logger);
 
 /**
  * @brief Set the global log level.
@@ -84,7 +86,7 @@ void sn_static_logger_flush(snStaticLogger *logger);
  * @param logger Pointer to the logger context
  * @param level New log level threshold
  */
-void sn_static_logger_set_level(snStaticLogger *logger, snLogLevel level);
+SN_API void sn_static_logger_set_level(snStaticLogger *logger, snLogLevel level);
 
 /**
  * @brief Log a formatted message.
@@ -100,7 +102,7 @@ void sn_static_logger_set_level(snStaticLogger *logger, snLogLevel level);
  * @note Not thread-safe.
  * @note Messages may be truncated if teh buffer is too small.
  */
-void sn_static_logger_log(snStaticLogger *logger, snLogLevel level, const char *fmt, ...);
+SN_API void sn_static_logger_log(snStaticLogger *logger, snLogLevel level, const char *fmt, ...);
 
 /**
  * @brief Log a formatted message using a va_list.
@@ -114,7 +116,7 @@ void sn_static_logger_log(snStaticLogger *logger, snLogLevel level, const char *
  *
  * @note The va_list is consumed by this function.
  */
-void sn_static_logger_log_va(snStaticLogger *logger, snLogLevel level, const char *fmt, va_list args);
+SN_API void sn_static_logger_log_va(snStaticLogger *logger, snLogLevel level, const char *fmt, va_list args);
 
 /**
  * @brief Log a raw message without formatting.
@@ -128,5 +130,5 @@ void sn_static_logger_log_va(snStaticLogger *logger, snLogLevel level, const cha
  *
  * @note No formatting or null-termination is assumed.
  */
-void sn_static_logger_log_raw(snStaticLogger *logger, snLogLevel level, const char *msg, size_t len);
+SN_API void sn_static_logger_log_raw(snStaticLogger *logger, snLogLevel level, const char *msg, size_t len);
 

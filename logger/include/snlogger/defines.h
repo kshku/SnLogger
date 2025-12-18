@@ -2,20 +2,24 @@
 
 #include "snlogger/platform.h"
 
-#ifdef SN_EXPORT
-    #if defined(SN_OS_LINUX) || defined(SN_OS_MAC)
-        #define SN_API __attribute__((visibility("default")))
-    #elif defined(SN_OS_WINDOWS)
-        #define SN_API __declspec(dllexport)
-    #else
-        #error "Should not reach here!"
-    #endif
+#if defined(SN_LOGGER_STATIC)
+    #define SN_API
 #else
-    #if defined(SN_OS_LINUX) || defined(SN_OS_MAC)
-        #define SN_API
-    #elif defined(SN_OS_WINDOWS)
-        #define SN_API __declspec(dllimport)
+    #ifdef SN_EXPORT
+        #if defined(SN_OS_LINUX) || defined(SN_OS_MAC)
+            #define SN_API __attribute__((visibility("default")))
+        #elif defined(SN_OS_WINDOWS)
+            #define SN_API __declspec(dllexport)
+        #else
+            #error "Should not reach here!"
+        #endif
     #else
-        #error "Should not reach here!"
+        #if defined(SN_OS_LINUX) || defined(SN_OS_MAC)
+            #define SN_API
+        #elif defined(SN_OS_WINDOWS)
+            #define SN_API __declspec(dllimport)
+        #else
+            #error "Should not reach here!"
+        #endif
     #endif
 #endif

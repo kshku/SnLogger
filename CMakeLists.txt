@@ -17,7 +17,17 @@ set(msvc_comp "$<COMPILE_LANG_AND_ID:C,MSVC>")
 
 # target_compile_features(configs INTERFACE c_std_17)
 
-target_compile_options(configs INTERFACE "$<${gcc_clang_comp}:-Wall;-Wextra;-Wformat;-Wuninitialized>")
+target_compile_options(configs INTERFACE "$<${gcc_clang_comp}:-Wall;-Wextra;-Wformat;-Wuninitialized;-Wpedantic>")
+
+target_compile_options(configs INTERFACE "$<${gcc_clang_comp}:-fvisibility=hidden>")
+
+target_compile_definitions(configs INTERFACE
+    SN_LOGGER_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+    SN_LOGGER_VERSION_MINOR=${PROJECT_VERSION_MINOR}
+    SN_LOGGER_VERSION_PATCH=${PROJECT_VERSION_PATCH}
+)
+
+option(SN_LOGGER_BUILD_STATIC "Build static library" ON)
 
 add_subdirectory(docs)
 add_subdirectory(logger)

@@ -201,7 +201,7 @@ size_t sn_async_logger_process(snAsyncLogger *logger) {
             // Next record should start from 0 itself
             logger->read_offset = 0;
 
-        snLogRecordHeader *record = (snLogRecordHeader *)(logger->buffer + logger->read_offset);
+        snLogRecordHeader *record = (snLogRecordHeader *)(((char *)logger->buffer) + logger->read_offset);
 
         // Check for wrap mark
         if (record->level == SN_LOG_LEVEL_FATAL + 1) {
@@ -261,7 +261,7 @@ size_t sn_async_logger_process_n(snAsyncLogger *logger, size_t n) {
             // Next record should start from 0 itself
             logger->read_offset = 0;
 
-        snLogRecordHeader *record = (snLogRecordHeader *)(logger->buffer + logger->read_offset);
+        snLogRecordHeader *record = (snLogRecordHeader *)(((char *)logger->buffer) + logger->read_offset);
 
         // Check for wrap mark
         if (record->level == SN_LOG_LEVEL_FATAL + 1) {
