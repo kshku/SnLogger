@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15...3.31)
 
-project(SnLogger VERSION 0.0.0 DESCRIPTION "A logging library written in C" LANGUAGES C)
+project(SnLogger VERSION 0.1.0 DESCRIPTION "A logging library written in C" LANGUAGES C)
 
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD_REQUIRED ON)

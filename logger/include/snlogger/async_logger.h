@@ -197,7 +197,7 @@ void sn_async_logger_set_level(snAsyncLogger *logger, snLogLevel level);
  * @note This function only enqueues the message. It does not write to sinks.
  * @note This function is not thread-safe unless lock hooks are installed
  *       or external synchronization is provided by the caller.
- * @note Records are processed only when sn_async_logger_process() is called.
+ * @note Records are processed only when sn_async_logger_process*() is called.
  */
 void sn_async_logger_log(snAsyncLogger *logger, snLogLevel level, const char *fmt, ...);
 
@@ -245,12 +245,58 @@ void sn_async_logger_log_raw(snAsyncLogger *logger, snLogLevel level, const char
 size_t sn_async_logger_process(snAsyncLogger *logger);
 
 /**
+ * @brief Process at max n queued log records.
+ *
+ * Writes queued records to all sinks in order.
+ *
+ * @param logger Pointer to the async logger context.
+ * @param n Number of records to process at max.
+ *
+ * @return Number of log records processed.
+ *
+ * @note Intended to be called by a user-managed consumer thread or loop.
+ * @note This function is not thread-safe unless lock hooks are installed
+ *       or external synchronization is provided by the caller.
+ */
+size_t sn_async_logger_process_n(snAsyncLogger *logger, size_t n);
+
+/**
+ * @brief Process log records until the logger becomes empty.
+ *
+ * Records enqueued while draining MAY also be processed.
+ * This function returns only when no records are available
+ * at the time of checking.
+ *
+ * Writes queued records to all sinks in order.
+ *
+ * @param logger Pointer to the async logger context.
+ *
+ * @return Number of log records processed.
+ *
+ * @note Intended to be called by a user-managed consumer thread or loop.
+ * @note This function is not thread-safe unless lock hooks are installed
+ *       or external synchronization is provided by the caller.
+ */
+size_t sn_async_logger_drain(snAsyncLogger *logger);
+
+/**
+ * @brief Flush all sinks.
+ *
+ * Calls flush on all the sinks if provided.
+ *
+ * @param logger Pointer to the async logger context.
+ */
+void sn_async_logger_flush(snAsyncLogger *logger);
+
+/**
  * @brief Process all queued log records and flush all sinks.
+ *
+ * Records enqueued while draining MAY also be processed.
  *
  * @param logger Pointer to the async logger context.
  *
  * @note Does not synchronize with producers unless user-provided locks
  *       guarantee it.
  */
-void sn_async_logger_process_and_flush(snAsyncLogger *logger);
+void sn_async_logger_drain_and_flush(snAsyncLogger *logger);
 

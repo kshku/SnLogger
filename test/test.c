@@ -21,6 +21,12 @@ typedef struct {
     size_t count;
 } TestSink;
 
+typedef struct {
+    TestSink base;
+    int flush_count;
+} FlushSink;
+
+
 static void test_sink_write(const char *msg, size_t len, snLogLevel level, void *data) {
     (void)level;
     TestSink *sink = data;
@@ -32,6 +38,11 @@ static void test_sink_write(const char *msg, size_t len, snLogLevel level, void 
     memcpy(sink->logs[sink->count], msg, copy);
     sink->logs[sink->count][copy] = 0;
     sink->count++;
+}
+
+static void flush_sink_flush(void *data) {
+    FlushSink *fs = data;
+    fs->flush_count++;
 }
 
 static void *malloc_wrapper(size_t size, void *data) {
@@ -301,6 +312,124 @@ static void test_async_multi_producer_ordering(void) {
     printf("✓ passed\n");
 }
 
+static void test_async_process_n(void) {
+    printf("Running test_async_process_n...\n");
+
+    char buffer[4096];
+    TestSink sink = {0};
+
+    snSink sinks[] = {
+        {.write = test_sink_write, .data = &sink}
+    };
+
+    snAsyncLogger al;
+    sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
+
+    for (int i = 0; i < 20; ++i)
+        sn_async_logger_log(&al, SN_LOG_LEVEL_INFO, "msg-%d", i);
+
+    size_t p1 = sn_async_logger_process_n(&al, 7);
+    assert(p1 == 7);
+    assert(sink.count == 7);
+
+    size_t p2 = sn_async_logger_process_n(&al, 7);
+    assert(p2 == 7);
+    assert(sink.count == 14);
+
+    size_t p3 = sn_async_logger_process_n(&al, 100);
+    assert(p3 == 6);
+    assert(sink.count == 20);
+
+    sn_async_logger_deinit(&al);
+
+    printf("✓ passed\n");
+}
+
+static void test_async_drain(void) {
+    printf("Running test_async_drain...\n");
+
+    char buffer[4096];
+    TestSink sink = {0};
+
+    snSink sinks[] = {
+        {.write = test_sink_write, .data = &sink}
+    };
+
+    snAsyncLogger al;
+    sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
+
+    for (int i = 0; i < 50; ++i)
+        sn_async_logger_log(&al, SN_LOG_LEVEL_INFO, "msg-%d", i);
+
+    size_t drained = sn_async_logger_drain(&al);
+
+    assert(drained == 50);
+    assert(sink.count == 50);
+
+    sn_async_logger_deinit(&al);
+
+    printf("✓ passed\n");
+}
+
+static void test_async_flush_only(void) {
+    printf("Running test_async_flush_only...\n");
+
+    char buffer[4096];
+    FlushSink sink = {0};
+
+    snSink sinks[] = {
+        {
+            .write = test_sink_write,
+            .flush = flush_sink_flush,
+            .data = &sink
+        }
+    };
+
+    snAsyncLogger al;
+    sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
+
+    sn_async_logger_log(&al, SN_LOG_LEVEL_INFO, "hello");
+
+    sn_async_logger_flush(&al);
+
+    assert(sink.flush_count == 1);
+    assert(sink.base.count == 0); // NOT processed
+
+    sn_async_logger_deinit(&al);
+
+    printf("✓ passed\n");
+}
+
+static void test_async_drain_and_flush(void) {
+    printf("Running test_async_drain_and_flush...\n");
+
+    char buffer[4096];
+    FlushSink sink = {0};
+
+    snSink sinks[] = {
+        {
+            .write = test_sink_write,
+            .flush = flush_sink_flush,
+            .data = &sink
+        }
+    };
+
+    snAsyncLogger al;
+    sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
+
+    for (int i = 0; i < 10; ++i)
+        sn_async_logger_log(&al, SN_LOG_LEVEL_INFO, "msg-%d", i);
+
+    sn_async_logger_drain_and_flush(&al);
+
+    assert(sink.base.count == 10);
+    assert(sink.flush_count == 1);
+
+    sn_async_logger_deinit(&al);
+
+    printf("✓ passed\n");
+}
+
 int main(void) {
     test_static_basic();
     test_static_truncation();
@@ -313,6 +442,11 @@ int main(void) {
     test_async_drop_behavior();
 
     printf("All async logger tests passed!\n\n");
+
+    test_async_process_n();
+    test_async_drain();
+    test_async_flush_only();
+    test_async_drain_and_flush();
 
     printf("All tests passed\n");
     return 0;
