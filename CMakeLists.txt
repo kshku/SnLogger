@@ -27,8 +27,14 @@ target_compile_definitions(configs INTERFACE
     SN_LOGGER_VERSION_PATCH=${PROJECT_VERSION_PATCH}
 )
 
-option(SN_LOGGER_BUILD_STATIC "Build static library" ON)
+option(SN_LOGGER_BUILD_SHARED "Build shared library" OFF)
+option(SN_LOGGER_BUILD_TEST "Build tests" OFF)
 
 add_subdirectory(docs)
 add_subdirectory(logger)
-add_subdirectory("test")
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR SN_LOGGER_BUILD_TEST)
+    add_subdirectory("test")
+else()
+    message(STATUS "Building test is disabled")
+endif()

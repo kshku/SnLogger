@@ -17,3 +17,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
     add_dependencies(copy_dlls test)
 endif()
+
+add_executable(test1 test1.c)
+target_link_libraries(test1 PRIVATE snlogger)
+
+add_executable(test2 test2.c)
+target_link_libraries(test2 PRIVATE snlogger)
