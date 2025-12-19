@@ -8,6 +8,9 @@
 
 #define async_logger_unlock(logger) if (logger->unlock) logger->unlock(logger->lock_data)
 
+#define GET_ALIGNED(x, align) (((size_t)(x) + (align) - 1) & ~((align) - 1))
+#define PTR_BYTE_DIFF(x, y) (((size_t)x) - ((size_t)y))
+
 static size_t ring_buffer_free_size(snAsyncLogger *logger) {
     if (logger->write_offset >= logger->read_offset)
         return logger->buffer_size - (logger->write_offset - logger->read_offset);
@@ -16,6 +19,8 @@ static size_t ring_buffer_free_size(snAsyncLogger *logger) {
 }
 
 static snLogRecordHeader *ring_buffer_allocate(snAsyncLogger *logger, size_t size) {
+    size += alignof(snLogRecordHeader);
+
     size_t free = ring_buffer_free_size(logger);
 
     if (free < size) return NULL;
@@ -23,8 +28,9 @@ static snLogRecordHeader *ring_buffer_allocate(snAsyncLogger *logger, size_t siz
     if ((logger->write_offset >= logger->read_offset && logger->write_offset + size <= logger->buffer_size) || 
             (logger->write_offset < logger->read_offset && logger->write_offset + size < logger->read_offset)) {
         void *p = ((char *)logger->buffer) + logger->write_offset;
-        logger->write_offset += size;
-        return (snLogRecordHeader *)p;
+        void *aligned = (void *)GET_ALIGNED(p, alignof(snLogRecordHeader));
+        logger->write_offset += size - alignof(snLogRecordHeader) + PTR_BYTE_DIFF(aligned, p);
+        return (snLogRecordHeader *)aligned;
     }
 
     if (logger->write_offset >= logger->read_offset && logger->read_offset > size) {
@@ -33,19 +39,19 @@ static snLogRecordHeader *ring_buffer_allocate(snAsyncLogger *logger, size_t siz
             snLogRecordHeader *wrap_mark = (snLogRecordHeader *)(((char *)logger->buffer) + logger->write_offset);
             wrap_mark->level = SN_LOG_LEVEL_FATAL + 1;
         }
-        logger->write_offset = size;
-        return (snLogRecordHeader *)logger->buffer;
+        void *aligned = (void *)GET_ALIGNED(logger->buffer, alignof(snLogRecordHeader));
+        logger->write_offset = size - alignof(snLogRecordHeader) + PTR_BYTE_DIFF(aligned, logger->buffer);
+        return (snLogRecordHeader *)aligned;
     }
 
     return NULL;
 }
 
-
 static snLogRecordHeapNode *try_heap_allocation(snAsyncLogger *logger, size_t len) {
     if (!logger->alloc) return NULL;
 
     size_t alloc_size = sizeof(snLogRecordHeapNode) + sizeof(snLogRecordHeader) + len;
-    snLogRecordHeapNode *node = logger->alloc(alloc_size, logger->mem_data);
+    snLogRecordHeapNode *node = logger->alloc(alloc_size, alignof(snLogRecordHeader), logger->mem_data);
 
     if (!node) return NULL;
 
@@ -205,7 +211,9 @@ size_t sn_async_logger_process_n(snAsyncLogger *logger, size_t n) {
             // Next record should start from 0 itself
             logger->read_offset = 0;
 
-        snLogRecordHeader *record = (snLogRecordHeader *)(((char *)logger->buffer) + logger->read_offset);
+        void *read_ptr = ((char *)logger->buffer) + logger->read_offset;
+        snLogRecordHeader *record = (snLogRecordHeader *)GET_ALIGNED(read_ptr, alignof(snLogRecordHeader));
+        logger->read_offset += ((size_t)record) - ((size_t)read_ptr);
 
         // Check for wrap mark
         if (record->level == SN_LOG_LEVEL_FATAL + 1) {

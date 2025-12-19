@@ -180,23 +180,25 @@ int main(void) {
     };
 
     sn_static_logger_init(&sl, buffers[0], LOGGER_BUFFER_SIZE, sinks[0], ARRAY_LEN(sinks[0]));
-    sn_async_logger_init(&al, buffers[1], LOGGER_BUFFER_SIZE, sinks[1], ARRAY_LEN(sinks[1]));
+    sn_async_logger_init(&al, &buffers[1][7], LOGGER_BUFFER_SIZE - 7, sinks[1], ARRAY_LEN(sinks[1]));
 
-    log_trace(&sl, "Static trace message %.2f", 3.1415);
-    log_debug(&sl, "Static debug message %.2f", 3.1415);
-    log_info(&sl, "Static info message %.2f", 3.1415);
-    log_warn(&sl, "Static warn message %.2f", 3.1415);
-    log_error(&sl, "Static error message %.2f", 3.1415);
-    log_fatal(&sl, "Static fatal message %.2f", 3.1415);
+    for (int i = 0; i < 20; ++i) {
+        log_trace(&sl, "Static trace message %.2f", 3.1415);
+        log_debug(&sl, "Static debug message %.2f", 3.1415);
+        log_info(&sl, "Static info message %.2f", 3.1415);
+        log_warn(&sl, "Static warn message %.2f", 3.1415);
+        log_error(&sl, "Static error message %.2f", 3.1415);
+        log_fatal(&sl, "Static fatal message %.2f", 3.1415);
 
-    loga_trace(&al, "Async trace message %.2f", 3.1415);
-    loga_debug(&al, "Async debug message %.2f", 3.1415);
-    sn_async_logger_process(&al);
-    loga_info(&al, "Async info message %.2f", 3.1415);
-    loga_warn(&al, "Async warn message %.2f", 3.1415);
-    sn_async_logger_process(&al);
-    loga_error(&al, "Async error message %.2f", 3.1415);
-    loga_fatal(&al, "Async fatal message %.2f", 3.1415);
+        loga_trace(&al, "Async trace message %.2f", 3.1415);
+        loga_debug(&al, "Async debug message %.2f", 3.1415);
+        sn_async_logger_process(&al);
+        loga_info(&al, "Async info message %.2f", 3.1415);
+        loga_warn(&al, "Async warn message %.2f", 3.1415);
+        sn_async_logger_process(&al);
+        loga_error(&al, "Async error message %.2f", 3.1415);
+        loga_fatal(&al, "Async fatal message %.2f", 3.1415);
+    }
 
     sn_static_logger_deinit(&sl);
     sn_async_logger_deinit(&al);

@@ -10,7 +10,6 @@ set(HEADERFILES
 )
 
 set(SRCS
-    snlogger.c
     formatter.c
     static_logger.c
     async_logger.c

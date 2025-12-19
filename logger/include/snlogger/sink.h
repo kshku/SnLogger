@@ -1,8 +1,8 @@
 #pragma once
 
-#include "snlogger/log_level.h"
+#include "snlogger/defines.h"
 
-#include <stddef.h>
+#include "snlogger/log_level.h"
 
 /**
  * @brief Sink write function for the logger.

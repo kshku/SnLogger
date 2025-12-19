@@ -6,7 +6,6 @@
 #include "snlogger/sink.h"
 
 #include <stdarg.h>
-#include <stddef.h>
 
 
 /**

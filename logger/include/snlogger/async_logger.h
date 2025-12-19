@@ -5,14 +5,13 @@
 #include "snlogger/log_level.h"
 #include "snlogger/sink.h"
 
-#include <stddef.h>
 #include <stdarg.h>
-#include <stdint.h>
 
 /**
  * @brief Memory allocation hook used by the async logger.
  *
  * @param size Number of bytes to allocate.
+ * @param align The alignment requirement
  * @param data User-provided memory context.
  *
  * @return Pointer to allocated memory, or NULL on failure.
@@ -21,7 +20,7 @@
  *       required by its implementation.
  * @note Must not call the logger directly or indirectly.
  */
-typedef void *(*snMemoryAllocateFn)(size_t size, void *data);
+typedef void *(*snMemoryAllocateFn)(size_t size, size_t align, void *data);
 
 /**
  * @brief Memory free hook used by the async logger.

@@ -2,6 +2,11 @@
 
 #include "snlogger/platform.h"
 
+#include <stdalign.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
 #if defined(SN_LOGGER_STATIC)
     #define SN_API
 #else
@@ -23,3 +28,4 @@
         #endif
     #endif
 #endif
+

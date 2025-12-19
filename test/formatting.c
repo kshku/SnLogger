@@ -1,5 +1,7 @@
 #include <snlogger/snlogger.h>
 
+#include <snlogger/defines.h>
+
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -22,12 +24,16 @@ static size_t format_layout(LayoutCtx *ctx, uint64_t timestamp, snLogLevel level
         case SN_LOG_LEVEL_FATAL: level_str = "FATAL"; break;
     }
 
+#ifndef SN_OS_WINDOWS
     // NOTE: If VT is not enabled, colored output is not visible in windows and other characters will be displayed instead!
     static const char *colors[] = {
         "0;37", "0;34", "0;32", "0;33", "1;31", "1;41"
     };
 
     int n = snprintf(ctx->buffer, sizeof(ctx->buffer), "\x1b[%sm[%llu] [%s]: ", colors[level], (unsigned long long)timestamp, level_str);
+#else
+    int n = snprintf(ctx->buffer, sizeof(ctx->buffer), "[%llu] [%s]: ", (unsigned long long)timestamp, level_str);
+#endif
 
 
     size_t off = (n > 0) ? (size_t)n : 0;
@@ -55,7 +61,9 @@ layout_sink_write(const char *msg, size_t len,
     size_t out_len = format_layout(ctx, ts, level, msg, len);
 
     fwrite(ctx->buffer, 1, out_len, stdout);
+#ifndef SN_OS_WINDOWS
     fputs("\x1b[0m\n", stdout);
+#endif
 }
 
 /* ------------------ Test ------------------ */
