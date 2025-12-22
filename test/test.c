@@ -199,12 +199,14 @@ static void test_async_drop_behavior(void) {
         sn_async_logger_log(&al, SN_LOG_LEVEL_INFO, "long-message-%d-xxxxxxxxxxxxxxxx", i);
     }
 
+    size_t dropped = al.dropped;
+
     sn_async_logger_deinit(&al);
 
     assert(sink.count > 0);
-    assert(al.dropped > 0);
+    assert(dropped > 0);
 
-    printf("✓ passed (dropped=%zu)\n", al.dropped);
+    printf("✓ passed (dropped=%zu)\n", dropped);
 }
 
 static atomic_uint_fast64_t global_seq = 1;

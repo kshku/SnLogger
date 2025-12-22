@@ -33,7 +33,7 @@ option(SN_LOGGER_BUILD_TEST "Build tests" OFF)
 add_subdirectory(docs)
 add_subdirectory(logger)
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR SN_LOGGER_BUILD_TEST)
+if(SN_LOGGER_BUILD_TEST)
     add_subdirectory("test")
 else()
     message(STATUS "Building test is disabled")
