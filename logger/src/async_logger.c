@@ -95,6 +95,8 @@ void sn_async_logger_deinit(snAsyncLogger *logger) {
         if (logger->sinks[i].flush) logger->sinks[i].flush(logger->sinks[i].data);
         if (logger->sinks[i].close) logger->sinks[i].close(logger->sinks[i].data);
     }
+
+    *logger = (snAsyncLogger){0};
 }
 
 void sn_async_logger_set_memory_hooks(snAsyncLogger *logger, snMemoryAllocateFn alloc, snMemoryFreeFn free, void *data) {

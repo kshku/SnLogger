@@ -23,6 +23,8 @@ void sn_static_logger_deinit(snStaticLogger *logger) {
         if (logger->sinks[i].flush) logger->sinks[i].flush(logger->sinks[i].data);
         if (logger->sinks[i].close) logger->sinks[i].close(logger->sinks[i].data);
     }
+
+    *logger = (snStaticLogger){0};
 }
 
 void sn_static_logger_flush(snStaticLogger *logger) {
