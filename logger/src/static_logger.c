@@ -32,19 +32,6 @@ void sn_static_logger_flush(snStaticLogger *logger) {
         if (logger->sinks[i].flush) logger->sinks[i].flush(logger->sinks[i].data);
 }
 
-void sn_static_logger_set_level(snStaticLogger *logger, snLogLevel level) {
-    logger->level = level;
-}
-
-void sn_static_logger_log(snStaticLogger *logger, snLogLevel level, const char *fmt, ...) {
-    if (level < logger->level) return;
-
-    va_list args;
-    va_start(args, fmt);
-    sn_static_logger_log_va(logger, level, fmt, args);
-    va_end(args);
-}
-
 void sn_static_logger_log_va(snStaticLogger *logger, snLogLevel level, const char *fmt, va_list args) {
     if (level < logger->level) return;
 

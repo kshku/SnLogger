@@ -7,7 +7,6 @@
 
 #include <stdarg.h>
 
-
 /**
  * @struct snStaticLogger static_logger.h <snlogger/static_logger.h>
  * @brief Simple synchronous logger using a user-provided static buffer.
@@ -85,7 +84,23 @@ SN_API void sn_static_logger_flush(snStaticLogger *logger);
  * @param logger Pointer to the logger context
  * @param level New log level threshold
  */
-SN_API void sn_static_logger_set_level(snStaticLogger *logger, snLogLevel level);
+SN_FORCE_INLINE void sn_static_logger_set_level(snStaticLogger *logger, snLogLevel level) {
+    logger->level = level;
+}
+
+/**
+ * @brief Log a formatted message using a va_list.
+ *
+ * Equivalent to sn_static_logger_log, but accepts a va_list.
+ *
+ * @param logger Pointer to the logger context
+ * @param level Log level of the message
+ * @param fmt printf-style format string
+ * @param args Format arguments as va_list
+ *
+ * @note The va_list is consumed by this function.
+ */
+SN_API void sn_static_logger_log_va(snStaticLogger *logger, snLogLevel level, const char *fmt, va_list args);
 
 /**
  * @brief Log a formatted message.
@@ -101,21 +116,14 @@ SN_API void sn_static_logger_set_level(snStaticLogger *logger, snLogLevel level)
  * @note Not thread-safe.
  * @note Messages may be truncated if teh buffer is too small.
  */
-SN_API void sn_static_logger_log(snStaticLogger *logger, snLogLevel level, const char *fmt, ...);
+SN_INLINE void sn_static_logger_log(snStaticLogger *logger, snLogLevel level, const char *fmt, ...) {
+    if (level < logger->level) return;
 
-/**
- * @brief Log a formatted message using a va_list.
- *
- * Equivalent to sn_static_logger_log, but accepts a va_list.
- *
- * @param logger Pointer to the logger context
- * @param level Log level of the message
- * @param fmt printf-style format string
- * @param args Format arguments as va_list
- *
- * @note The va_list is consumed by this function.
- */
-SN_API void sn_static_logger_log_va(snStaticLogger *logger, snLogLevel level, const char *fmt, va_list args);
+    va_list args;
+    va_start(args, fmt);
+    sn_static_logger_log_va(logger, level, fmt, args);
+    va_end(args);
+}
 
 /**
  * @brief Log a raw message without formatting.

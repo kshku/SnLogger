@@ -103,31 +103,6 @@ void sn_async_logger_deinit(snAsyncLogger *logger) {
     *logger = (snAsyncLogger){0};
 }
 
-void sn_async_logger_set_memory_hooks(snAsyncLogger *logger, snMemoryAllocateFn alloc, snMemoryFreeFn free, void *data) {
-    logger->alloc = alloc;
-    logger->free = free;
-    logger->mem_data = data;
-}
-
-void sn_async_logger_set_lock_hooks(snAsyncLogger *logger, snLockFn lock, snUnlockFn unlock, void *data) {
-    logger->lock = lock;
-    logger->unlock = unlock;
-    logger->lock_data = data;
-}
-
-void sn_async_logger_set_level(snAsyncLogger *logger, snLogLevel level) {
-    logger->level = level;
-}
-
-void sn_async_logger_log(snAsyncLogger *logger, snLogLevel level, const char *fmt, ...) {
-    if (level < logger->level) return;
-
-    va_list args;
-    va_start(args, fmt);
-    sn_async_logger_log_va(logger, level, fmt, args);
-    va_end(args);
-}
-
 void sn_async_logger_log_va(snAsyncLogger *logger, snLogLevel level, const char *fmt, va_list args) {
     if (level < logger->level) return;
 
@@ -201,10 +176,6 @@ void sn_async_logger_log_raw(snAsyncLogger *logger, snLogLevel level, const char
 
     logger->dropped++;
     async_logger_unlock(logger);
-}
-
-size_t sn_async_logger_process(snAsyncLogger *logger) {
-    return sn_async_logger_process_n(logger, -1);
 }
 
 size_t sn_async_logger_process_n(snAsyncLogger *logger, size_t n) {
