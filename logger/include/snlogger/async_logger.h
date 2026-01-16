@@ -1,11 +1,13 @@
 #pragma once
 
-#include "snlogger/defines.h"
+#include <stdarg.h>
 
+#include "snlogger/defines.h"
 #include "snlogger/log_level.h"
 #include "snlogger/sink.h"
 
-#include <stdarg.h>
+#include "snlogger/api.h"
+
 
 /**
  * @brief Memory allocation hook used by the async logger.
@@ -321,3 +323,4 @@ SN_API void sn_async_logger_flush(snAsyncLogger *logger);
  */
 SN_API void sn_async_logger_drain_and_flush(snAsyncLogger *logger);
 
+#undef SN_API

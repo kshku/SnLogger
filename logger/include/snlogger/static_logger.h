@@ -1,11 +1,12 @@
 #pragma once
 
-#include "snlogger/defines.h"
+#include <stdarg.h>
 
+#include "snlogger/defines.h"
 #include "snlogger/log_level.h"
 #include "snlogger/sink.h"
 
-#include <stdarg.h>
+#include "snlogger/api.h"
 
 /**
  * @struct snStaticLogger static_logger.h <snlogger/static_logger.h>
@@ -139,3 +140,4 @@ SN_INLINE void sn_static_logger_log(snStaticLogger *logger, snLogLevel level, co
  */
 SN_API void sn_static_logger_log_raw(snStaticLogger *logger, snLogLevel level, const char *msg, size_t len);
 
+#undef SN_API
