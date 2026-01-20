@@ -63,6 +63,8 @@ layout_sink_write(const char *msg, size_t len,
     fwrite(ctx->buffer, 1, out_len, stdout);
 #ifndef SN_OS_WINDOWS
     fputs("\x1b[0m\n", stdout);
+#else
+	fputc('\n', stdout);
 #endif
 }
 

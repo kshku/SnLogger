@@ -3,16 +3,17 @@
 #include <snlogger/defines.h>
 #include <snlogger/snlogger.h>
 
-#ifndef SN_OS_WINDOWS
-
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdbool.h>
+
+#ifndef SN_OS_WINDOWS
 #include <pthread.h>
 #include <stdatomic.h>
 #include <unistd.h>
-#include <stdbool.h>
+#endif
 
 #define MAX_LOGS 100000
 #define MAX_LEN  16
@@ -28,7 +29,6 @@ typedef struct {
     TestSink base;
     int flush_count;
 } FlushSink;
-
 
 static void test_sink_write(const char *msg, size_t len, snLogLevel level, void *data) {
     (void)level;
@@ -60,6 +60,7 @@ static void free_wrapper(void *ptr, void *data) {
     free(ptr);
 }
 
+#ifndef SN_OS_WINDOWS
 typedef struct {
     pthread_mutex_t mutex;
 } MutexCtx;
@@ -73,6 +74,7 @@ static void unlock_wrapper(void *data) {
     MutexCtx *ctx = data;
     pthread_mutex_unlock(&ctx->mutex);
 }
+#endif
 
 static void test_static_basic(void) {
     printf("Running test_static_basic...\n");
@@ -209,6 +211,7 @@ static void test_async_drop_behavior(void) {
     printf("✓ passed (dropped=%zu)\n", dropped);
 }
 
+#ifndef SN_OS_WINDOWS
 static atomic_uint_fast64_t global_seq = 1;
 
 typedef struct {
@@ -251,8 +254,10 @@ static void *consumer_thread(void *arg) {
     while (sn_async_logger_process(ca->logger));
     return NULL;
 }
+#endif
 
 static void test_async_multi_producer_ordering(void) {
+#ifndef SN_OS_WINDOWS
     printf("Running test_async_multi_producer_ordering...\n");
 
     enum {
@@ -315,6 +320,7 @@ static void test_async_multi_producer_ordering(void) {
     }
 
     printf("✓ passed\n");
+#endif
 }
 
 static void test_async_process_n(void) {
@@ -456,5 +462,3 @@ int main(void) {
     printf("All tests passed\n");
     return 0;
 }
-
-#endif

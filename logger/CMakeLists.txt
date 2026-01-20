@@ -3,7 +3,7 @@ if(SN_LOGGER_BUILD_SHARED)
     target_compile_definitions(snlogger PRIVATE SN_EXPORT)
 else()
     add_library(snlogger STATIC)
-    target_compile_definitions(snlogger PRIVATE SN_LOGGER_STATIC)
+    target_compile_definitions(snlogger PUBLIC SN_LOGGER_STATIC)
 endif()
 
 target_include_directories(snlogger PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
