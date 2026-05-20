@@ -4,9 +4,11 @@
 
 #include <string.h>
 
-#define async_logger_lock(logger) if (logger->lock) logger->lock(logger->lock_data)
+#define async_logger_lock(logger)                     \
+    if (logger->lock) logger->lock(logger->lock_data)
 
-#define async_logger_unlock(logger) if (logger->unlock) logger->unlock(logger->lock_data)
+#define async_logger_unlock(logger)                       \
+    if (logger->unlock) logger->unlock(logger->lock_data)
 
 #define GET_ALIGNED(x, align) (((size_t)(x) + (align) - 1) & ~((align) - 1))
 #define PTR_BYTE_DIFF(x, y) (((size_t)x) - ((size_t)y))
@@ -25,8 +27,8 @@ static snLogRecordHeader *ring_buffer_allocate(snAsyncLogger *logger, size_t siz
 
     if (free < size) return NULL;
 
-    if ((logger->write_offset >= logger->read_offset && logger->write_offset + size <= logger->buffer_size) || 
-            (logger->write_offset < logger->read_offset && logger->write_offset + size < logger->read_offset)) {
+    if ((logger->write_offset >= logger->read_offset && logger->write_offset + size <= logger->buffer_size)
+        || (logger->write_offset < logger->read_offset && logger->write_offset + size < logger->read_offset)) {
         void *p = ((char *)logger->buffer) + logger->write_offset;
         void *aligned = (void *)GET_ALIGNED(p, alignof(snLogRecordHeader));
         logger->write_offset += size - alignof(snLogRecordHeader) + PTR_BYTE_DIFF(aligned, p);
@@ -40,7 +42,8 @@ static snLogRecordHeader *ring_buffer_allocate(snAsyncLogger *logger, size_t siz
             void *ptr = ((char *)logger->buffer) + logger->write_offset;
             snLogRecordHeader *wrap_mark = (snLogRecordHeader *)GET_ALIGNED(ptr, alignof(snLogRecordHeader));
             logger->write_offset += PTR_BYTE_DIFF(wrap_mark, ptr);
-            if (logger->write_offset < logger->buffer_size && logger->buffer_size - logger->write_offset >= sizeof(snLogRecordHeader))
+            if (logger->write_offset < logger->buffer_size
+                && logger->buffer_size - logger->write_offset >= sizeof(snLogRecordHeader))
                 wrap_mark->level = SN_LOG_LEVEL_FATAL + 1;
         }
         void *aligned = (void *)GET_ALIGNED(logger->buffer, alignof(snLogRecordHeader));
@@ -63,10 +66,8 @@ static snLogRecordHeapNode *try_heap_allocation(snAsyncLogger *logger, size_t le
 
     node->record = (snLogRecordHeader *)(node + 1);
 
-    if (logger->heap_tail)
-        logger->heap_tail->next = node;
-    else
-        logger->heap_head = node;
+    if (logger->heap_tail) logger->heap_tail->next = node;
+    else logger->heap_head = node;
     logger->heap_tail = node;
 
     return node;
@@ -188,7 +189,8 @@ size_t sn_async_logger_process_n(snAsyncLogger *logger, size_t n) {
         snLogRecordHeader *record = (snLogRecordHeader *)GET_ALIGNED(read_ptr, alignof(snLogRecordHeader));
         logger->read_offset += PTR_BYTE_DIFF(record, read_ptr);
 
-        if (logger->read_offset >= logger->buffer_size || logger->buffer_size - logger->read_offset < sizeof(snLogRecordHeader)) {
+        if (logger->read_offset >= logger->buffer_size
+            || logger->buffer_size - logger->read_offset < sizeof(snLogRecordHeader)) {
             // Next record should start from 0 itself
             logger->read_offset = 0;
             continue;
@@ -202,12 +204,13 @@ size_t sn_async_logger_process_n(snAsyncLogger *logger, size_t n) {
 
         // maintain the order
         if (logger->processed_timestamp + 1 != record->timestamp) break;
-        logger->processed_timestamp = record->timestamp; // or just logger->processed_timestamp++;
+        logger->processed_timestamp = record->timestamp;  // or just logger->processed_timestamp++;
 
         async_logger_unlock(logger);
 
         for (size_t i = 0; i < logger->sink_count; ++i)
-            logger->sinks[i].write((const char *)(record + 1), record->len, record->level, logger->sinks[i].data);
+            logger->sinks[i].write(
+                (const char *)(record + 1), record->len, record->level, logger->sinks[i].data);
 
         ++count;
 
@@ -220,7 +223,8 @@ size_t sn_async_logger_process_n(snAsyncLogger *logger, size_t n) {
         snLogRecordHeapNode *node = logger->heap_head;
         // maintain the order
         if (logger->processed_timestamp + 1 != node->record->timestamp) break;
-        logger->processed_timestamp = node->record->timestamp; // or just logger->processed_timestamp++;
+        logger->processed_timestamp = node->record->timestamp;  // or just
+                                                                // logger->processed_timestamp++;
 
         logger->heap_head = node->next;
 
@@ -229,7 +233,8 @@ size_t sn_async_logger_process_n(snAsyncLogger *logger, size_t n) {
         async_logger_unlock(logger);
 
         for (size_t i = 0; i < logger->sink_count; ++i)
-            logger->sinks[i].write((const char *)(node->record + 1), node->record->len, node->record->level, logger->sinks[i].data);
+            logger->sinks[i].write((const char *)(node->record + 1), node->record->len,
+                                   node->record->level, logger->sinks[i].data);
 
         if (logger->free) logger->free(node, logger->mem_data);
         ++count;

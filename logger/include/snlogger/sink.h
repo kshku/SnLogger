@@ -1,7 +1,6 @@
 #pragma once
 
 #include "snlogger/defines.h"
-
 #include "snlogger/log_level.h"
 
 /**
@@ -97,10 +96,10 @@ typedef void (*snSinkFlushFn)(void *data);
  *       Sink implementations must handle their own synchronization if needed.
  */
 typedef struct snSink {
-    snSinkOpenFn  open;   /**< Optional sink initialization callback */
-    snSinkWriteFn write;  /**< Required sink write callback */
-    snSinkCloseFn close;  /**< Optional sink shutdown callback */
-    snSinkFlushFn flush;  /**< Optional sink flush callback */
-    void *data;           /**< User-defined sink data */
+    snSinkOpenFn open; /**< Optional sink initialization callback */
+    snSinkWriteFn write; /**< Required sink write callback */
+    snSinkCloseFn close; /**< Optional sink shutdown callback */
+    snSinkFlushFn flush; /**< Optional sink flush callback */
+    void *data; /**< User-defined sink data */
 } snSink;
 

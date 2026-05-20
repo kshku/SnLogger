@@ -2,11 +2,11 @@
 
 #include "snlogger/platform.h"
 
+#include <assert.h>
 #include <stdalign.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <assert.h>
 
 #define SN_INLINE static inline
 

@@ -2,8 +2,8 @@
 
 #include "snlogger/formatter.h"
 
-void sn_static_logger_init(snStaticLogger *logger, char *buffer, size_t buffer_size,
-        snSink *sinks, size_t sink_count) {
+void sn_static_logger_init(
+    snStaticLogger *logger, char *buffer, size_t buffer_size, snSink *sinks, size_t sink_count) {
     *logger = (snStaticLogger){
         .buffer = buffer,
         .buffer_size = buffer_size,
@@ -28,7 +28,7 @@ void sn_static_logger_deinit(snStaticLogger *logger) {
 }
 
 void sn_static_logger_flush(snStaticLogger *logger) {
-    for (size_t i = 0; i < logger->sink_count; ++i) 
+    for (size_t i = 0; i < logger->sink_count; ++i)
         if (logger->sinks[i].flush) logger->sinks[i].flush(logger->sinks[i].data);
 }
 

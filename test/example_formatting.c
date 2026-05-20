@@ -1,15 +1,14 @@
 #include <snlogger/snlogger.h>
-
-#include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #if defined(SN_OS_WINDOWS)
-#include <windows.h>
+    #include <windows.h>
 
 static bool enableVTProcessing(DWORD handle_type);
 #else
-#include <unistd.h>
+    #include <unistd.h>
 #endif
 
 #define ARRAY_LEN(x) (sizeof(x) / sizeof(x[0]))
@@ -19,17 +18,13 @@ static bool enableVTProcessing(DWORD handle_type);
 #define FORMAT "[%s]: %s:%lu in funtion %s: %s\n"
 #define FORMAT_ARGS level_string, file, line, function, format_string
 
-void log_msg(snStaticLogger *lg,
-        snLogLevel level, const char *file,
-        const char *function, long line,
-        const char *format_string, ...) {
-
+void log_msg(snStaticLogger *lg, snLogLevel level, const char *file, const char *function,
+             long line, const char *format_string, ...) {
     if (level < lg->level) return;
 
     const char *level_string = NULL;
     const char *level_strings[] = {"TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"};
     level_string = level_strings[level];
-
 
     char buffer[1024] = {0};
     size_t buffer_size = ARRAY_LEN(buffer);
@@ -38,7 +33,8 @@ void log_msg(snStaticLogger *lg,
     if (len < 0) abort();
 
     if (len >= buffer_size) {
-        log_msg(lg, SN_LOG_LEVEL_ERROR, file, function, line, "Too long message, try increasing the buffer size or decreasing message length!");
+        log_msg(lg, SN_LOG_LEVEL_ERROR, file, function, line,
+                "Too long message, try increasing the buffer size or decreasing message length!");
         return;
     }
 
@@ -50,10 +46,8 @@ void log_msg(snStaticLogger *lg,
     va_end(args);
 }
 
-void loga_msg(snAsyncLogger *lg,
-        snLogLevel level, const char *file,
-        const char *function, long line,
-        const char *format_string, ...) {
+void loga_msg(snAsyncLogger *lg, snLogLevel level, const char *file, const char *function,
+              long line, const char *format_string, ...) {
     if (level < lg->level) return;
 
     const char *level_string = NULL;
@@ -67,7 +61,8 @@ void loga_msg(snAsyncLogger *lg,
     if (len < 0) abort();
 
     if (len >= buffer_size) {
-        loga_msg(lg, SN_LOG_LEVEL_ERROR, file, function, line, "Too long message, try increasing the buffer size or decreasing message length!");
+        loga_msg(lg, SN_LOG_LEVEL_ERROR, file, function, line,
+                 "Too long message, try increasing the buffer size or decreasing message length!");
         return;
     }
 
@@ -79,19 +74,31 @@ void loga_msg(snAsyncLogger *lg,
     va_end(args);
 }
 
-#define log_trace(lg, msg, ...) log_msg(lg, SN_LOG_LEVEL_TRACE, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
-#define log_debug(lg, msg, ...) log_msg(lg, SN_LOG_LEVEL_DEBUG, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
-#define log_info(lg, msg, ...) log_msg(lg, SN_LOG_LEVEL_INFO, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
-#define log_warn(lg, msg, ...) log_msg(lg, SN_LOG_LEVEL_WARN, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
-#define log_error(lg, msg, ...) log_msg(lg, SN_LOG_LEVEL_ERROR, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
-#define log_fatal(lg, msg, ...) log_msg(lg, SN_LOG_LEVEL_FATAL, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
+#define log_trace(lg, msg, ...)                                                       \
+    log_msg(lg, SN_LOG_LEVEL_TRACE, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
+#define log_debug(lg, msg, ...)                                                       \
+    log_msg(lg, SN_LOG_LEVEL_DEBUG, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
+#define log_info(lg, msg, ...)                                                       \
+    log_msg(lg, SN_LOG_LEVEL_INFO, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
+#define log_warn(lg, msg, ...)                                                       \
+    log_msg(lg, SN_LOG_LEVEL_WARN, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
+#define log_error(lg, msg, ...)                                                       \
+    log_msg(lg, SN_LOG_LEVEL_ERROR, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
+#define log_fatal(lg, msg, ...)                                                       \
+    log_msg(lg, SN_LOG_LEVEL_FATAL, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
 
-#define loga_trace(lg, msg, ...) loga_msg(lg, SN_LOG_LEVEL_TRACE, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
-#define loga_debug(lg, msg, ...) loga_msg(lg, SN_LOG_LEVEL_DEBUG, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
-#define loga_info(lg, msg, ...) loga_msg(lg, SN_LOG_LEVEL_INFO, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
-#define loga_warn(lg, msg, ...) loga_msg(lg, SN_LOG_LEVEL_WARN, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
-#define loga_error(lg, msg, ...) loga_msg(lg, SN_LOG_LEVEL_ERROR, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
-#define loga_fatal(lg, msg, ...) loga_msg(lg, SN_LOG_LEVEL_FATAL, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
+#define loga_trace(lg, msg, ...)                                                       \
+    loga_msg(lg, SN_LOG_LEVEL_TRACE, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
+#define loga_debug(lg, msg, ...)                                                       \
+    loga_msg(lg, SN_LOG_LEVEL_DEBUG, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
+#define loga_info(lg, msg, ...)                                                       \
+    loga_msg(lg, SN_LOG_LEVEL_INFO, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
+#define loga_warn(lg, msg, ...)                                                       \
+    loga_msg(lg, SN_LOG_LEVEL_WARN, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
+#define loga_error(lg, msg, ...)                                                       \
+    loga_msg(lg, SN_LOG_LEVEL_ERROR, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
+#define loga_fatal(lg, msg, ...)                                                       \
+    loga_msg(lg, SN_LOG_LEVEL_FATAL, __FILE__, __func__, __LINE__, msg, ##__VA_ARGS__)
 
 typedef struct stdout_stderr_sink {
     // 0 -> stdout, 1 -> stderr
@@ -157,27 +164,18 @@ int main(void) {
 
     // 0 -> static, 1 -> async
     char buffers[2][LOGGER_BUFFER_SIZE];
-    stdout_stderr_sink sink_data[2] = {0}; 
+    stdout_stderr_sink sink_data[2] = {0};
     snSink sinks[2][1] = {
         // Static
-        {
-            (snSink){
-                .open = stdout_stderr_sink_open,
-                .flush = stdout_stderr_sink_flush,
-                .write = stdout_stderr_sink_write,
-                .data = &sink_data[0]
-            }
-        },
+        {(snSink){.open = stdout_stderr_sink_open,
+                  .flush = stdout_stderr_sink_flush,
+                  .write = stdout_stderr_sink_write,
+                  .data = &sink_data[0]}},
         // Async
-        {
-            (snSink){
-                .open = stdout_stderr_sink_open,
-                .flush = stdout_stderr_sink_flush,
-                .write = stdout_stderr_sink_write,
-                .data = &sink_data[1]
-            }
-        }
-    };
+        {(snSink){.open = stdout_stderr_sink_open,
+                  .flush = stdout_stderr_sink_flush,
+                  .write = stdout_stderr_sink_write,
+                  .data = &sink_data[1]}}};
 
     sn_static_logger_init(&sl, buffers[0], LOGGER_BUFFER_SIZE, sinks[0], ARRAY_LEN(sinks[0]));
     sn_async_logger_init(&al, &buffers[1][7], LOGGER_BUFFER_SIZE - 7, sinks[1], ARRAY_LEN(sinks[1]));
@@ -212,8 +210,7 @@ static bool enableVTProcessing(DWORD handle_type) {
     DWORD modes = 0;
     if (!GetConsoleMode(handle, &modes)) return false;
 
-    modes |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING
-           | DISABLE_NEWLINE_AUTO_RETURN;
+    modes |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
     if (!SetConsoleMode(handle, modes)) return false;
 
     return true;

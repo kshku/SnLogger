@@ -1,12 +1,11 @@
 #pragma once
 
-#include <stdarg.h>
-
+#include "snlogger/api.h"
 #include "snlogger/defines.h"
 #include "snlogger/log_level.h"
 #include "snlogger/sink.h"
 
-#include "snlogger/api.h"
+#include <stdarg.h>
 
 /**
  * @struct snStaticLogger static_logger.h <snlogger/static_logger.h>
@@ -54,8 +53,8 @@ typedef struct snStaticLogger {
  * @note The buffer and sinks must remain valid for the lifetime of the logger.
  * @note This function does not allocate memory.
  */
-SN_API void sn_static_logger_init(snStaticLogger *logger, char *buffer, size_t buffer_size,
-        snSink *sinks, size_t sink_count);
+SN_API void sn_static_logger_init(
+    snStaticLogger *logger, char *buffer, size_t buffer_size, snSink *sinks, size_t sink_count);
 
 /**
  * @brief Deinitialize the static logger.
