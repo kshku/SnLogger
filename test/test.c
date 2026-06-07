@@ -1,6 +1,5 @@
 #define _GNU_SOURCE
 
-#include <assert.h>
 #include <snlogger/defines.h>
 #include <snlogger/snlogger.h>
 #include <stdbool.h>
@@ -13,6 +12,8 @@
     #include <stdatomic.h>
     #include <unistd.h>
 #endif
+
+#define TEST_ASSERT(x) do { if (!(x)) { fprintf(stderr, "FAIL [%s:%d]: %s\n", __FILE__, __LINE__, #x); abort(); } } while(0)
 
 #define MAX_LOGS 100000
 #define MAX_LEN 16
@@ -92,9 +93,9 @@ static void test_static_basic(void) {
 
     sn_static_logger_deinit(&sl);
 
-    assert(sink.count == 2);
-    assert(strcmp(sink.logs[0], "hello") == 0);
-    assert(strcmp(sink.logs[1], "world") == 0);
+    TEST_ASSERT(sink.count == 2);
+    TEST_ASSERT(strcmp(sink.logs[0], "hello") == 0);
+    TEST_ASSERT(strcmp(sink.logs[1], "world") == 0);
 
     printf("✓ passed\n");
 }
@@ -116,8 +117,8 @@ static void test_static_truncation(void) {
 
     sn_static_logger_deinit(&sl);
 
-    assert(sink.count == 1);
-    assert(strlen(sink.logs[0]) > 0);  // something was printed
+    TEST_ASSERT(sink.count == 1);
+    TEST_ASSERT(strlen(sink.logs[0]) > 0);  // something was printed
 
     printf("✓ passed\n");
 }
@@ -142,8 +143,8 @@ static void test_static_log_level(void) {
 
     sn_static_logger_deinit(&sl);
 
-    assert(sink.count == 1);
-    assert(strcmp(sink.logs[0], "error") == 0);
+    TEST_ASSERT(sink.count == 1);
+    TEST_ASSERT(strcmp(sink.logs[0], "error") == 0);
 
     printf("✓ passed\n");
 }
@@ -169,12 +170,12 @@ static void test_async_single_thread_ordering(void) {
 
     sn_async_logger_deinit(&al);
 
-    assert(sink.count == 1000);
+    TEST_ASSERT(sink.count == 1000);
 
     for (int i = 0; i < 1000; ++i) {
         char expected[32];
         snprintf(expected, sizeof(expected), "msg-%d", i);
-        assert(strcmp(sink.logs[i], expected) == 0);
+        TEST_ASSERT(strcmp(sink.logs[i], expected) == 0);
     }
 
     printf("✓ passed\n");
@@ -201,8 +202,8 @@ static void test_async_drop_behavior(void) {
 
     sn_async_logger_deinit(&al);
 
-    assert(sink.count > 0);
-    assert(dropped > 0);
+    TEST_ASSERT(sink.count > 0);
+    TEST_ASSERT(dropped > 0);
 
     printf("✓ passed (dropped=%zu)\n", dropped);
 }
@@ -292,14 +293,14 @@ static void test_async_multi_producer_ordering(void) {
     pthread_mutex_destroy(&mctx.mutex);
 
     size_t expected = PRODUCERS * MSGS_PER_PRODUCER;
-    bool found_seq[PRODUCERS * MSGS_PER_PRODUCER] = {0};
+    bool found_seq[PRODUCERS * MSGS_PER_PRODUCER + 1] = {0};
 
-    assert(sink.count == expected);
+    TEST_ASSERT(sink.count == expected);
 
     for (size_t i = 0; i < sink.count; ++i) {
         uint64_t seq;
-        assert(sscanf(sink.logs[i], "%lu", &seq) == 1);
-        assert(!found_seq[seq]);
+        TEST_ASSERT(sscanf(sink.logs[i], "%lu", &seq) == 1);
+        TEST_ASSERT(!found_seq[seq]);
         found_seq[seq] = true;
     }
 
@@ -323,16 +324,16 @@ static void test_async_process_n(void) {
     for (int i = 0; i < 20; ++i) sn_async_logger_log(&al, SN_LOG_LEVEL_INFO, "msg-%d", i);
 
     size_t p1 = sn_async_logger_process_n(&al, 7);
-    assert(p1 == 7);
-    assert(sink.count == 7);
+    TEST_ASSERT(p1 == 7);
+    TEST_ASSERT(sink.count == 7);
 
     size_t p2 = sn_async_logger_process_n(&al, 7);
-    assert(p2 == 7);
-    assert(sink.count == 14);
+    TEST_ASSERT(p2 == 7);
+    TEST_ASSERT(sink.count == 14);
 
     size_t p3 = sn_async_logger_process_n(&al, 100);
-    assert(p3 == 6);
-    assert(sink.count == 20);
+    TEST_ASSERT(p3 == 6);
+    TEST_ASSERT(sink.count == 20);
 
     sn_async_logger_deinit(&al);
 
@@ -356,8 +357,8 @@ static void test_async_drain(void) {
 
     size_t drained = sn_async_logger_drain(&al);
 
-    assert(drained == 50);
-    assert(sink.count == 50);
+    TEST_ASSERT(drained == 50);
+    TEST_ASSERT(sink.count == 50);
 
     sn_async_logger_deinit(&al);
 
@@ -381,8 +382,8 @@ static void test_async_flush_only(void) {
 
     sn_async_logger_flush(&al);
 
-    assert(sink.flush_count == 1);
-    assert(sink.base.count == 0);  // NOT processed
+    TEST_ASSERT(sink.flush_count == 1);
+    TEST_ASSERT(sink.base.count == 0);  // NOT processed
 
     sn_async_logger_deinit(&al);
 
@@ -406,8 +407,8 @@ static void test_async_drain_and_flush(void) {
 
     sn_async_logger_drain_and_flush(&al);
 
-    assert(sink.base.count == 10);
-    assert(sink.flush_count == 1);
+    TEST_ASSERT(sink.base.count == 10);
+    TEST_ASSERT(sink.flush_count == 1);
 
     sn_async_logger_deinit(&al);
 
