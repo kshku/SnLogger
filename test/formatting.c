@@ -11,7 +11,7 @@ typedef struct LayoutCtx {
     char buffer[256];
 } LayoutCtx;
 
-static size_t format_layout(LayoutCtx *ctx, uint64_t timestamp, snLogLevel level, const char *msg, size_t msg_len) {
+static size_t format_layout(LayoutCtx *ctx, uint64_t timestamp, SnLogLevel level, const char *msg, size_t msg_len) {
     const char *level_str = "";
     switch (level) {
         case SN_LOG_LEVEL_TRACE:
@@ -58,7 +58,7 @@ static size_t format_layout(LayoutCtx *ctx, uint64_t timestamp, snLogLevel level
 
 /* ------------------ Sink that applies layout ------------------ */
 
-static void layout_sink_write(const char *msg, size_t len, snLogLevel level, void *data) {
+static void layout_sink_write(const char *msg, size_t len, SnLogLevel level, void *data) {
     LayoutCtx *ctx = data;
 
     uint64_t ts = (uint64_t)time(NULL);
@@ -79,9 +79,9 @@ int main(void) {
     char log_buf[128];
     LayoutCtx layout = {0};
 
-    snSink sink = {.write = layout_sink_write, .data = &layout};
+    SnSink sink = {.write = layout_sink_write, .data = &layout};
 
-    snStaticLogger logger;
+    SnStaticLogger logger;
     sn_static_logger_init(&logger, log_buf, sizeof(log_buf), &sink, 1);
 
     sn_static_logger_log(&logger, SN_LOG_LEVEL_INFO, "Hello %s", "world");

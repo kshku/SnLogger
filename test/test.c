@@ -30,7 +30,7 @@ typedef struct {
     int flush_count;
 } FlushSink;
 
-static void test_sink_write(const char *msg, size_t len, snLogLevel level, void *data) {
+static void test_sink_write(const char *msg, size_t len, SnLogLevel level, void *data) {
     (void)level;
     TestSink *sink = data;
 
@@ -81,11 +81,11 @@ static void test_static_basic(void) {
     char buffer[STATIC_BUF_SIZE];
     TestSink sink = {0};
 
-    snSink sinks[] = {
+    SnSink sinks[] = {
         {.write = test_sink_write, .data = &sink}
     };
 
-    snStaticLogger sl;
+    SnStaticLogger sl;
     sn_static_logger_init(&sl, buffer, sizeof(buffer), sinks, 1);
 
     sn_static_logger_log(&sl, SN_LOG_LEVEL_INFO, "hello");
@@ -106,11 +106,11 @@ static void test_static_truncation(void) {
     char buffer[32];  // tiny on purpose
     TestSink sink = {0};
 
-    snSink sinks[] = {
+    SnSink sinks[] = {
         {.write = test_sink_write, .data = &sink}
     };
 
-    snStaticLogger sl;
+    SnStaticLogger sl;
     sn_static_logger_init(&sl, buffer, sizeof(buffer), sinks, 1);
 
     sn_static_logger_log(&sl, SN_LOG_LEVEL_INFO, "this message is definitely too long to fit");
@@ -129,11 +129,11 @@ static void test_static_log_level(void) {
     char buffer[STATIC_BUF_SIZE];
     TestSink sink = {0};
 
-    snSink sinks[] = {
+    SnSink sinks[] = {
         {.write = test_sink_write, .data = &sink}
     };
 
-    snStaticLogger sl;
+    SnStaticLogger sl;
     sn_static_logger_init(&sl, buffer, sizeof(buffer), sinks, 1);
 
     sn_static_logger_set_level(&sl, SN_LOG_LEVEL_WARN);
@@ -155,11 +155,11 @@ static void test_async_single_thread_ordering(void) {
     char buffer[4096];
     TestSink sink = {0};
 
-    snSink sinks[] = {
+    SnSink sinks[] = {
         {.write = test_sink_write, .data = &sink}
     };
 
-    snAsyncLogger al;
+    SnAsyncLogger al;
     sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
     sn_async_logger_set_memory_hooks(&al, malloc_wrapper, free_wrapper, NULL);
 
@@ -187,11 +187,11 @@ static void test_async_drop_behavior(void) {
     char buffer[256];  // intentionally tiny
     TestSink sink = {0};
 
-    snSink sinks[] = {
+    SnSink sinks[] = {
         {.write = test_sink_write, .data = &sink}
     };
 
-    snAsyncLogger al;
+    SnAsyncLogger al;
     sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
 
     for (int i = 0; i < 1000; ++i) {
@@ -212,7 +212,7 @@ static void test_async_drop_behavior(void) {
 static atomic_uint_fast64_t global_seq = 1;
 
 typedef struct {
-    snAsyncLogger *logger;
+    SnAsyncLogger *logger;
     int thread_id;
     int count;
 } ProducerArgs;
@@ -228,7 +228,7 @@ static void *producer_thread(void *arg) {
 }
 
 typedef struct {
-    snAsyncLogger *logger;
+    SnAsyncLogger *logger;
     atomic_int *done;
 } ConsumerArgs;
 
@@ -258,11 +258,11 @@ static void test_async_multi_producer_ordering(void) {
     char buffer[16384];
     TestSink sink = {0};
 
-    snSink sinks[] = {
+    SnSink sinks[] = {
         {.write = test_sink_write, .data = &sink}
     };
 
-    snAsyncLogger al;
+    SnAsyncLogger al;
     sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
     sn_async_logger_set_memory_hooks(&al, malloc_wrapper, free_wrapper, NULL);
 
@@ -314,11 +314,11 @@ static void test_async_process_n(void) {
     char buffer[4096];
     TestSink sink = {0};
 
-    snSink sinks[] = {
+    SnSink sinks[] = {
         {.write = test_sink_write, .data = &sink}
     };
 
-    snAsyncLogger al;
+    SnAsyncLogger al;
     sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
 
     for (int i = 0; i < 20; ++i) sn_async_logger_log(&al, SN_LOG_LEVEL_INFO, "msg-%d", i);
@@ -346,11 +346,11 @@ static void test_async_drain(void) {
     char buffer[4096];
     TestSink sink = {0};
 
-    snSink sinks[] = {
+    SnSink sinks[] = {
         {.write = test_sink_write, .data = &sink}
     };
 
-    snAsyncLogger al;
+    SnAsyncLogger al;
     sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
 
     for (int i = 0; i < 50; ++i) sn_async_logger_log(&al, SN_LOG_LEVEL_INFO, "msg-%d", i);
@@ -371,11 +371,11 @@ static void test_async_flush_only(void) {
     char buffer[4096];
     FlushSink sink = {0};
 
-    snSink sinks[] = {
+    SnSink sinks[] = {
         {.write = test_sink_write, .flush = flush_sink_flush, .data = &sink}
     };
 
-    snAsyncLogger al;
+    SnAsyncLogger al;
     sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
 
     sn_async_logger_log(&al, SN_LOG_LEVEL_INFO, "hello");
@@ -396,11 +396,11 @@ static void test_async_drain_and_flush(void) {
     char buffer[4096];
     FlushSink sink = {0};
 
-    snSink sinks[] = {
+    SnSink sinks[] = {
         {.write = test_sink_write, .flush = flush_sink_flush, .data = &sink}
     };
 
-    snAsyncLogger al;
+    SnAsyncLogger al;
     sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
 
     for (int i = 0; i < 10; ++i) sn_async_logger_log(&al, SN_LOG_LEVEL_INFO, "msg-%d", i);

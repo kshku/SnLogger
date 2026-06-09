@@ -20,18 +20,18 @@
  *       required by its implementation.
  * @note Must not call the logger directly or indirectly.
  */
-typedef void *(*snMemoryAllocateFn)(size_t size, size_t align, void *data);
+typedef void *(*SnMemoryAllocateFn)(size_t size, size_t align, void *data);
 
 /**
  * @brief Memory free hook used by the async logger.
  *
- * @param ptr Pointer previously returned by snMemoryAllocateFn.
+ * @param ptr Pointer previously returned by SnMemoryAllocateFn.
  * @param data User-provided memory context.
  *
  * @note Optional.
  * @note Must not call the logger directly or indirectly.
  */
-typedef void (*snMemoryFreeFn)(void *ptr, void *data);
+typedef void (*SnMemoryFreeFn)(void *ptr, void *data);
 
 /**
  * @brief Lock hook used to protect async logger operations.
@@ -41,20 +41,20 @@ typedef void (*snMemoryFreeFn)(void *ptr, void *data);
  * @note Optional. If not provided, the async logger performs no synchronization.
  * @note Must not call the logger directly or indirectly.
  */
-typedef void (*snLockFn)(void *data);
+typedef void (*SnLockFn)(void *data);
 
 /**
  * @brief Unlock hook used to release the async logger lock.
  *
  * @param data User-provided lock context.
  *
- * @note Optional. Must correspond to snLockFn.
+ * @note Optional. Must correspond to SnLockFn.
  * @note Must not call the logger directly or indirectly.
  */
-typedef void (*snUnlockFn)(void *data);
+typedef void (*SnUnlockFn)(void *data);
 
 /**
- * @struct snLogRecordHeader
+ * @struct SnLogRecordHeader
  * @brief Header stored before each log record in the async logger buffer.
  *
  * This header is immediately followed in memory by the log message payload
@@ -62,23 +62,23 @@ typedef void (*snUnlockFn)(void *data);
  *
  * The message payload is not required to be null-terminated.
  */
-typedef struct snLogRecordHeader {
-    snLogLevel level; /**< Log level of the record */
+typedef struct SnLogRecordHeader {
+    SnLogLevel level; /**< Log level of the record */
     uint64_t timestamp; /**< Timestamp associated with the record */
     size_t len; /**< Length of the message payload in bytes */
-} snLogRecordHeader;
+} SnLogRecordHeader;
 
 /**
- * @struct snLogRecordHeapNode
+ * @struct SnLogRecordHeapNode
  * @brief Node to store log record in heap.
  */
-typedef struct snLogRecordHeapNode {
-    struct snLogRecordHeapNode *next; /**< Pointer to next node */
-    snLogRecordHeader *record; /**< Pointer to log record header */
-} snLogRecordHeapNode;
+typedef struct SnLogRecordHeapNode {
+    struct SnLogRecordHeapNode *next; /**< Pointer to next node */
+    SnLogRecordHeader *record; /**< Pointer to log record header */
+} SnLogRecordHeapNode;
 
 /**
- * @struct snAsyncLogger async_logger.h <snlogger/async_logger.h>
+ * @struct SnAsyncLogger async_logger.h <snlogger/async_logger.h>
  * @brief Asynchronous logger using a fixed-size ring buffer.
  *
  * The async logger enqueues log records into a ring buffer and processes
@@ -94,10 +94,10 @@ typedef struct snLogRecordHeapNode {
  * - Thread-safe only when lock hooks are installed
  * - Lock hooks must protect both producers and consumers
  */
-typedef struct snAsyncLogger {
-    snLogLevel level; /**< Global log level */
+typedef struct SnAsyncLogger {
+    SnLogLevel level; /**< Global log level */
 
-    snSink *sinks; /**< List of sinks */
+    SnSink *sinks; /**< List of sinks */
     size_t sink_count; /**< Number of sinks */
 
     void *buffer; /**< Ring buffer storage */
@@ -105,22 +105,22 @@ typedef struct snAsyncLogger {
     size_t write_offset; /**< Current write position within the buffer */
     size_t read_offset; /**< Current read position within the buffer */
 
-    snLogRecordHeapNode *heap_head; /**< Overflow heap list head */
-    snLogRecordHeapNode *heap_tail; /**< Overflow heap list tail */
+    SnLogRecordHeapNode *heap_head; /**< Overflow heap list head */
+    SnLogRecordHeapNode *heap_tail; /**< Overflow heap list tail */
 
     uint64_t timestamp; /**< Monotonic record counter */
     uint64_t processed_timestamp; /**< Last processed record */
 
-    snLockFn lock; /**< Optional lock function */
-    snUnlockFn unlock; /**< Optional unlock function */
+    SnLockFn lock; /**< Optional lock function */
+    SnUnlockFn unlock; /**< Optional unlock function */
     void *lock_data; /**< User data passed to lock functions */
 
-    snMemoryAllocateFn alloc; /**< Optional memory allocation hook */
-    snMemoryFreeFn free; /**< Optional memory free hook */
+    SnMemoryAllocateFn alloc; /**< Optional memory allocation hook */
+    SnMemoryFreeFn free; /**< Optional memory free hook */
     void *mem_data; /**< User data passed to memory hooks */
 
     size_t dropped; /**< Number of logs dropped */
-} snAsyncLogger;
+} SnAsyncLogger;
 
 /**
  * @brief Initialize an async logger.
@@ -135,7 +135,7 @@ typedef struct snAsyncLogger {
  * @note This function does not allocate memory or start any threads.
  */
 SN_API void sn_async_logger_init(
-    snAsyncLogger *logger, void *buffer, size_t buffer_size, snSink *sinks, size_t sink_count);
+    SnAsyncLogger *logger, void *buffer, size_t buffer_size, SnSink *sinks, size_t sink_count);
 
 /**
  * @brief Deinitialize the async logger.
@@ -145,7 +145,7 @@ SN_API void sn_async_logger_init(
  *
  * @param logger Pointer to the async logger context.
  */
-SN_API void sn_async_logger_deinit(snAsyncLogger *logger);
+SN_API void sn_async_logger_deinit(SnAsyncLogger *logger);
 
 /**
  * @brief Set memory hooks for the async logger.
@@ -158,7 +158,7 @@ SN_API void sn_async_logger_deinit(snAsyncLogger *logger);
  * @note Optional. The async logger functions without memory hooks.
  */
 SN_FORCE_INLINE void sn_async_logger_set_memory_hooks(
-    snAsyncLogger *logger, snMemoryAllocateFn alloc, snMemoryFreeFn free, void *data) {
+    SnAsyncLogger *logger, SnMemoryAllocateFn alloc, SnMemoryFreeFn free, void *data) {
     logger->alloc = alloc;
     logger->free = free;
     logger->mem_data = data;
@@ -182,7 +182,7 @@ SN_FORCE_INLINE void sn_async_logger_set_memory_hooks(
  * @note Lock functions must not call the logger directly or indirectly.
  */
 SN_FORCE_INLINE void
-    sn_async_logger_set_lock_hooks(snAsyncLogger *logger, snLockFn lock, snUnlockFn unlock, void *data) {
+    sn_async_logger_set_lock_hooks(SnAsyncLogger *logger, SnLockFn lock, SnUnlockFn unlock, void *data) {
     logger->lock = lock;
     logger->unlock = unlock;
     logger->lock_data = data;
@@ -194,7 +194,7 @@ SN_FORCE_INLINE void
  * @param logger Pointer to the async logger context.
  * @param level New log level.
  */
-SN_FORCE_INLINE void sn_async_logger_set_level(snAsyncLogger *logger, snLogLevel level) {
+SN_FORCE_INLINE void sn_async_logger_set_level(SnAsyncLogger *logger, SnLogLevel level) {
     logger->level = level;
 }
 
@@ -210,7 +210,7 @@ SN_FORCE_INLINE void sn_async_logger_set_level(snAsyncLogger *logger, snLogLevel
  * @note This function is not thread-safe unless lock hooks are installed
  *       or external synchronization is provided by the caller.
  */
-SN_API void sn_async_logger_log_va(snAsyncLogger *logger, snLogLevel level, const char *fmt, va_list args);
+SN_API void sn_async_logger_log_va(SnAsyncLogger *logger, SnLogLevel level, const char *fmt, va_list args);
 
 /**
  * @brief Enqueue a formatted log message.
@@ -227,7 +227,7 @@ SN_API void sn_async_logger_log_va(snAsyncLogger *logger, snLogLevel level, cons
  *       or external synchronization is provided by the caller.
  * @note Records are processed only when sn_async_logger_process*() is called.
  */
-SN_INLINE void sn_async_logger_log(snAsyncLogger *logger, snLogLevel level, const char *fmt, ...) {
+SN_INLINE void sn_async_logger_log(SnAsyncLogger *logger, SnLogLevel level, const char *fmt, ...) {
     if (level < logger->level) return;
 
     va_list args;
@@ -248,7 +248,7 @@ SN_INLINE void sn_async_logger_log(snAsyncLogger *logger, snLogLevel level, cons
  * @note This function is not thread-safe unless lock hooks are installed
  *       or external synchronization is provided by the caller.
  */
-SN_API void sn_async_logger_log_raw(snAsyncLogger *logger, snLogLevel level, const char *msg, size_t len);
+SN_API void sn_async_logger_log_raw(SnAsyncLogger *logger, SnLogLevel level, const char *msg, size_t len);
 
 /**
  * @brief Process at max n queued log records.
@@ -264,7 +264,7 @@ SN_API void sn_async_logger_log_raw(snAsyncLogger *logger, snLogLevel level, con
  * @note This function is not thread-safe unless lock hooks are installed
  *       or external synchronization is provided by the caller.
  */
-SN_API size_t sn_async_logger_process_n(snAsyncLogger *logger, size_t n);
+SN_API size_t sn_async_logger_process_n(SnAsyncLogger *logger, size_t n);
 
 /**
  * @brief Process queued log records.
@@ -279,7 +279,7 @@ SN_API size_t sn_async_logger_process_n(snAsyncLogger *logger, size_t n);
  * @note This function is not thread-safe unless lock hooks are installed
  *       or external synchronization is provided by the caller.
  */
-SN_FORCE_INLINE size_t sn_async_logger_process(snAsyncLogger *logger) {
+SN_FORCE_INLINE size_t sn_async_logger_process(SnAsyncLogger *logger) {
     return sn_async_logger_process_n(logger, -1);
 }
 
@@ -300,7 +300,7 @@ SN_FORCE_INLINE size_t sn_async_logger_process(snAsyncLogger *logger) {
  * @note This function is not thread-safe unless lock hooks are installed
  *       or external synchronization is provided by the caller.
  */
-SN_API size_t sn_async_logger_drain(snAsyncLogger *logger);
+SN_API size_t sn_async_logger_drain(SnAsyncLogger *logger);
 
 /**
  * @brief Flush all sinks.
@@ -309,7 +309,7 @@ SN_API size_t sn_async_logger_drain(snAsyncLogger *logger);
  *
  * @param logger Pointer to the async logger context.
  */
-SN_API void sn_async_logger_flush(snAsyncLogger *logger);
+SN_API void sn_async_logger_flush(SnAsyncLogger *logger);
 
 /**
  * @brief Process all queued log records and flush all sinks.
@@ -321,6 +321,6 @@ SN_API void sn_async_logger_flush(snAsyncLogger *logger);
  * @note Does not synchronize with producers unless user-provided locks
  *       guarantee it.
  */
-SN_API void sn_async_logger_drain_and_flush(snAsyncLogger *logger);
+SN_API void sn_async_logger_drain_and_flush(SnAsyncLogger *logger);
 
 #undef SN_API

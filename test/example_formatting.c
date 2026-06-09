@@ -18,7 +18,7 @@ static bool enableVTProcessing(DWORD handle_type);
 #define FORMAT "[%s]: %s:%lu in funtion %s: %s\n"
 #define FORMAT_ARGS level_string, file, line, function, format_string
 
-void log_msg(snStaticLogger *lg, snLogLevel level, const char *file, const char *function,
+void log_msg(SnStaticLogger *lg, SnLogLevel level, const char *file, const char *function,
              long line, const char *format_string, ...) {
     if (level < lg->level) return;
 
@@ -46,7 +46,7 @@ void log_msg(snStaticLogger *lg, snLogLevel level, const char *file, const char 
     va_end(args);
 }
 
-void loga_msg(snAsyncLogger *lg, snLogLevel level, const char *file, const char *function,
+void loga_msg(SnAsyncLogger *lg, SnLogLevel level, const char *file, const char *function,
               long line, const char *format_string, ...) {
     if (level < lg->level) return;
 
@@ -105,7 +105,7 @@ typedef struct stdout_stderr_sink {
     bool colored_enabled[2];
 } stdout_stderr_sink;
 
-void stdout_stderr_sink_write(const char *msg, size_t len, snLogLevel level, void *data) {
+void stdout_stderr_sink_write(const char *msg, size_t len, SnLogLevel level, void *data) {
     stdout_stderr_sink *sink = (stdout_stderr_sink *)data;
 
     bool error = level > SN_LOG_LEVEL_WARN;
@@ -159,20 +159,20 @@ void stdout_stderr_sink_flush(void *data) {
 }
 
 int main(void) {
-    snStaticLogger sl;
-    snAsyncLogger al;
+    SnStaticLogger sl;
+    SnAsyncLogger al;
 
     // 0 -> static, 1 -> async
     char buffers[2][LOGGER_BUFFER_SIZE];
     stdout_stderr_sink sink_data[2] = {0};
-    snSink sinks[2][1] = {
+    SnSink sinks[2][1] = {
         // Static
-        {(snSink){.open = stdout_stderr_sink_open,
+        {(SnSink){.open = stdout_stderr_sink_open,
                   .flush = stdout_stderr_sink_flush,
                   .write = stdout_stderr_sink_write,
                   .data = &sink_data[0]}},
         // Async
-        {(snSink){.open = stdout_stderr_sink_open,
+        {(SnSink){.open = stdout_stderr_sink_open,
                   .flush = stdout_stderr_sink_flush,
                   .write = stdout_stderr_sink_write,
                   .data = &sink_data[1]}}};

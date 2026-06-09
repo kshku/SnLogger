@@ -22,7 +22,7 @@
  *
  * @note Blocking behavior is sink-defined.
  */
-typedef void (*snSinkWriteFn)(const char *msg, size_t len, snLogLevel level, void *data);
+typedef void (*SnSinkWriteFn)(const char *msg, size_t len, SnLogLevel level, void *data);
 
 /**
  * @brief Sink open callback.
@@ -39,7 +39,7 @@ typedef void (*snSinkWriteFn)(const char *msg, size_t len, snLogLevel level, voi
  *       - allocate dynamic memory
  *       - call the logger directly or indirectly
  */
-typedef void (*snSinkOpenFn)(void *data);
+typedef void (*SnSinkOpenFn)(void *data);
 
 /**
  * @brief Sink close callback.
@@ -56,7 +56,7 @@ typedef void (*snSinkOpenFn)(void *data);
  *       - allocate dynamic memory
  *       - call the logger directly or indirectly
  */
-typedef void (*snSinkCloseFn)(void *data);
+typedef void (*SnSinkCloseFn)(void *data);
 
 /**
  * @brief Sink flush callback.
@@ -75,10 +75,10 @@ typedef void (*snSinkCloseFn)(void *data);
  *       - allocate dynamic memory
  *       - call the logger directly or indirectly
  */
-typedef void (*snSinkFlushFn)(void *data);
+typedef void (*SnSinkFlushFn)(void *data);
 
 /**
- * @struct snSink sink.h <snlogger/sink.h>
+ * @struct SnSink sink.h <snlogger/sink.h>
  * @brief Log output sink.
  *
  * A sink represents a destination for log records.
@@ -95,11 +95,11 @@ typedef void (*snSinkFlushFn)(void *data);
  * @note The logger itself is not thread-safe unless explicitly stated.
  *       Sink implementations must handle their own synchronization if needed.
  */
-typedef struct snSink {
-    snSinkOpenFn open; /**< Optional sink initialization callback */
-    snSinkWriteFn write; /**< Required sink write callback */
-    snSinkCloseFn close; /**< Optional sink shutdown callback */
-    snSinkFlushFn flush; /**< Optional sink flush callback */
+typedef struct SnSink {
+    SnSinkOpenFn open; /**< Optional sink initialization callback */
+    SnSinkWriteFn write; /**< Required sink write callback */
+    SnSinkCloseFn close; /**< Optional sink shutdown callback */
+    SnSinkFlushFn flush; /**< Optional sink flush callback */
     void *data; /**< User-defined sink data */
-} snSink;
+} SnSink;
 

@@ -3,8 +3,8 @@
 #include "snlogger/formatter.h"
 
 void sn_static_logger_init(
-    snStaticLogger *logger, char *buffer, size_t buffer_size, snSink *sinks, size_t sink_count) {
-    *logger = (snStaticLogger){
+    SnStaticLogger *logger, char *buffer, size_t buffer_size, SnSink *sinks, size_t sink_count) {
+    *logger = (SnStaticLogger){
         .buffer = buffer,
         .buffer_size = buffer_size,
 
@@ -18,21 +18,21 @@ void sn_static_logger_init(
         if (sinks[i].open) sinks[i].open(sinks[i].data);
 }
 
-void sn_static_logger_deinit(snStaticLogger *logger) {
+void sn_static_logger_deinit(SnStaticLogger *logger) {
     for (size_t i = 0; i < logger->sink_count; ++i) {
         if (logger->sinks[i].flush) logger->sinks[i].flush(logger->sinks[i].data);
         if (logger->sinks[i].close) logger->sinks[i].close(logger->sinks[i].data);
     }
 
-    *logger = (snStaticLogger){0};
+    *logger = (SnStaticLogger){0};
 }
 
-void sn_static_logger_flush(snStaticLogger *logger) {
+void sn_static_logger_flush(SnStaticLogger *logger) {
     for (size_t i = 0; i < logger->sink_count; ++i)
         if (logger->sinks[i].flush) logger->sinks[i].flush(logger->sinks[i].data);
 }
 
-void sn_static_logger_log_va(snStaticLogger *logger, snLogLevel level, const char *fmt, va_list args) {
+void sn_static_logger_log_va(SnStaticLogger *logger, SnLogLevel level, const char *fmt, va_list args) {
     if (level < logger->level) return;
 
     size_t len = format_string(logger->buffer, logger->buffer_size, fmt, args);
@@ -49,7 +49,7 @@ void sn_static_logger_log_va(snStaticLogger *logger, snLogLevel level, const cha
         logger->sinks[i].write(logger->buffer, len, level, logger->sinks[i].data);
 }
 
-void sn_static_logger_log_raw(snStaticLogger *logger, snLogLevel level, const char *msg, size_t len) {
+void sn_static_logger_log_raw(SnStaticLogger *logger, SnLogLevel level, const char *msg, size_t len) {
     if (level < logger->level) return;
 
     for (size_t i = 0; i < logger->sink_count; ++i)
