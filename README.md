@@ -91,6 +91,21 @@ SnLogger does not:
 - Provide global loggers
 - Enforce cross-thread timestamp ordering
 
+## Adding to your project
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(snlogger
+    GIT_REPOSITORY https://github.com/kshku/SnLogger.git
+    GIT_TAG main
+)
+FetchContent_MakeAvailable(snlogger)
+
+target_link_libraries(myapp PRIVATE snlogger)
+```
+
+Or add it as a git submodule, link against the static or shared library, or include the source files directly.
+
 ## Building
 
 SnLogger uses CMake.
@@ -108,14 +123,15 @@ cmake -S . -B build -DSN_LOGGER_BUILD_SHARED=ON
 cmake --build build
 ```
 
-## Using SnLogger
-SnLogger is intended to be embedded directly into projects.
+| Option | Default | Description |
+|--------|---------|-------------|
+| `SN_LOGGER_BUILD_SHARED` | `OFF` | Build as shared library |
+| `SN_LOGGER_BUILD_TEST` | `OFF` | Build tests |
 
-You can:
-- Add it as a git submodule
-- Link against the static or shared library
-- Include the source files directly
-- No global initialization is required.
+## Dependencies
+
+- **SnCore** — fetched automatically via FetchContent
+- **SnMemory** — fetched automatically via FetchContent
 
 ## Documentation
 API documentation can be generated using Doxygen.
@@ -184,4 +200,3 @@ int main(void) {
 ```
 
 ***Checkout `test/example_formatting.c`***
-
