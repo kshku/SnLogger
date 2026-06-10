@@ -1,4 +1,4 @@
-#include <snlogger/defines.h>
+#include <sncore/defines.h>
 #include <snlogger/snlogger.h>
 #include <stdint.h>
 #include <stdio.h>

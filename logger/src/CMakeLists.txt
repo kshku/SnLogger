@@ -1,6 +1,4 @@
 set(HEADERFILES
-    platform.h
-    defines.h
     log_level.h
     snlogger.h
     formatter.h

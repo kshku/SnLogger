@@ -1,57 +1,13 @@
 #pragma once
 
 #include "snlogger/api.h"
-#include "snlogger/defines.h"
+#include <sncore/defines.h>
+#include <sncore/types.h>
+#include <snmemory/ring_buffer.h>
 #include "snlogger/log_level.h"
 #include "snlogger/sink.h"
 
 #include <stdarg.h>
-
-/**
- * @brief Memory allocation hook used by the async logger.
- *
- * @param size Number of bytes to allocate.
- * @param align The alignment requirement
- * @param data User-provided memory context.
- *
- * @return Pointer to allocated memory, or NULL on failure.
- *
- * @note Optional. The async logger does not allocate memory unless explicitly
- *       required by its implementation.
- * @note Must not call the logger directly or indirectly.
- */
-typedef void *(*SnMemoryAllocateFn)(size_t size, size_t align, void *data);
-
-/**
- * @brief Memory free hook used by the async logger.
- *
- * @param ptr Pointer previously returned by SnMemoryAllocateFn.
- * @param data User-provided memory context.
- *
- * @note Optional.
- * @note Must not call the logger directly or indirectly.
- */
-typedef void (*SnMemoryFreeFn)(void *ptr, void *data);
-
-/**
- * @brief Lock hook used to protect async logger operations.
- *
- * @param data User-provided lock context.
- *
- * @note Optional. If not provided, the async logger performs no synchronization.
- * @note Must not call the logger directly or indirectly.
- */
-typedef void (*SnLockFn)(void *data);
-
-/**
- * @brief Unlock hook used to release the async logger lock.
- *
- * @param data User-provided lock context.
- *
- * @note Optional. Must correspond to SnLockFn.
- * @note Must not call the logger directly or indirectly.
- */
-typedef void (*SnUnlockFn)(void *data);
 
 /**
  * @struct SnLogRecordHeader
@@ -100,10 +56,7 @@ typedef struct SnAsyncLogger {
     SnSink *sinks; /**< List of sinks */
     size_t sink_count; /**< Number of sinks */
 
-    void *buffer; /**< Ring buffer storage */
-    size_t buffer_size; /**< Total size of the ring buffer in bytes */
-    size_t write_offset; /**< Current write position within the buffer */
-    size_t read_offset; /**< Current read position within the buffer */
+    SnRingBuffer ring_buffer; /**< Ring buffer */
 
     SnLogRecordHeapNode *heap_head; /**< Overflow heap list head */
     SnLogRecordHeapNode *heap_tail; /**< Overflow heap list tail */

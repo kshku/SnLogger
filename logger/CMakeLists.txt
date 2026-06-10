@@ -10,5 +10,6 @@ target_include_directories(snlogger PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
 target_include_directories(snlogger PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 
 target_link_libraries(snlogger PRIVATE sn_logger_configs)
+target_link_libraries(snlogger PUBLIC sncore snmemory)
 
 add_subdirectory(src)

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "snlogger/defines.h"
+#include <sncore/defines.h>
 #include "snlogger/log_level.h"
 
 /**
