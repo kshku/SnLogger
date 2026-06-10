@@ -1,7 +1,7 @@
 #pragma once
 
 #include "snlogger/api.h"
-#include "snlogger/defines.h"
+#include <sncore/defines.h>
 #include "snlogger/log_level.h"
 #include "snlogger/sink.h"
 
@@ -53,7 +53,7 @@ typedef struct SnStaticLogger {
  * @note The buffer and sinks must remain valid for the lifetime of the logger.
  * @note This function does not allocate memory.
  */
-SN_API void sn_static_logger_init(
+SN_LOGGER_API void sn_static_logger_init(
     SnStaticLogger *logger, char *buffer, size_t buffer_size, SnSink *sinks, size_t sink_count);
 
 /**
@@ -65,7 +65,7 @@ SN_API void sn_static_logger_init(
  *
  * @param logger Pointer to the logger context
  */
-SN_API void sn_static_logger_deinit(SnStaticLogger *logger);
+SN_LOGGER_API void sn_static_logger_deinit(SnStaticLogger *logger);
 
 /**
  * @brief Flush all sinks.
@@ -74,7 +74,7 @@ SN_API void sn_static_logger_deinit(SnStaticLogger *logger);
  *
  * @param logger Pointer to the logger context
  */
-SN_API void sn_static_logger_flush(SnStaticLogger *logger);
+SN_LOGGER_API void sn_static_logger_flush(SnStaticLogger *logger);
 
 /**
  * @brief Set the global log level.
@@ -100,7 +100,7 @@ SN_FORCE_INLINE void sn_static_logger_set_level(SnStaticLogger *logger, SnLogLev
  *
  * @note The va_list is consumed by this function.
  */
-SN_API void sn_static_logger_log_va(SnStaticLogger *logger, SnLogLevel level, const char *fmt, va_list args);
+SN_LOGGER_API void sn_static_logger_log_va(SnStaticLogger *logger, SnLogLevel level, const char *fmt, va_list args);
 
 /**
  * @brief Log a formatted message.
@@ -137,6 +137,5 @@ SN_INLINE void sn_static_logger_log(SnStaticLogger *logger, SnLogLevel level, co
  *
  * @note No formatting or null-termination is assumed.
  */
-SN_API void sn_static_logger_log_raw(SnStaticLogger *logger, SnLogLevel level, const char *msg, size_t len);
+SN_LOGGER_API void sn_static_logger_log_raw(SnStaticLogger *logger, SnLogLevel level, const char *msg, size_t len);
 
-#undef SN_API

@@ -1,6 +1,6 @@
 #define _GNU_SOURCE
 
-#include <snlogger/defines.h>
+#include <sncore/defines.h>
 #include <snlogger/snlogger.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -47,7 +47,7 @@ static void flush_sink_flush(void *data) {
     fs->flush_count++;
 }
 
-static void *malloc_wrapper(size_t size, size_t align, void *data) {
+static void *malloc_wrapper(size_t size, void *data) {
     (void)data;
     void *p = malloc(size);
     if (!p) abort();
