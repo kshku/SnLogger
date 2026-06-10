@@ -56,7 +56,7 @@ typedef struct SnAsyncLogger {
     SnSink *sinks; /**< List of sinks */
     size_t sink_count; /**< Number of sinks */
 
-    SnRingBuffer ring_buffer; /**< Ring buffer */
+    SnRingBufferAllocator ring_buffer; /**< Ring buffer */
 
     SnLogRecordHeapNode *heap_head; /**< Overflow heap list head */
     SnLogRecordHeapNode *heap_tail; /**< Overflow heap list tail */

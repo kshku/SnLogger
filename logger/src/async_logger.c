@@ -13,7 +13,7 @@
 static SnLogRecordHeader *ring_buffer_allocate(SnAsyncLogger *logger, size_t size) {
     size += alignof(SnLogRecordHeader);
 
-    uint64_t free = sn_ring_buffer_free_size(&logger->ring_buffer);
+    uint64_t free = sn_ring_buffer_allocator_free_size(&logger->ring_buffer);
 
     if (free < size) return NULL;
 
@@ -81,7 +81,7 @@ void sn_async_logger_init(SnAsyncLogger *logger, void *buffer, size_t buffer_siz
         .processed_timestamp = 0,
     };
 
-    sn_ring_buffer_init(&logger->ring_buffer, buffer, buffer_size);
+    sn_ring_buffer_allocator_init(&logger->ring_buffer, buffer, buffer_size);
 
     for (size_t i = 0; i < sink_count; ++i)
         if (sinks[i].open) sinks[i].open(sinks[i].data);
@@ -179,7 +179,7 @@ size_t sn_async_logger_process_n(SnAsyncLogger *logger, size_t n) {
     async_logger_lock(logger);
 
     while (logger->ring_buffer.read_offset != logger->ring_buffer.write_offset && count < n) {
-        void *read_ptr = sn_ring_buffer_read_ptr(&logger->ring_buffer);
+        void *read_ptr = sn_ring_buffer_allocator_read_ptr(&logger->ring_buffer);
         SnLogRecordHeader *record
             = (SnLogRecordHeader *)SN_GET_ALIGNED(read_ptr, alignof(SnLogRecordHeader));
         logger->ring_buffer.read_offset += SN_PTR_DIFF(record, read_ptr);
