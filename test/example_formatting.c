@@ -28,11 +28,11 @@ void log_msg(SnStaticLogger *lg, SnLogLevel level, const char *file, const char 
 
     char buffer[1024] = {0};
     size_t buffer_size = ARRAY_LEN(buffer);
-    size_t len = snprintf(buffer, buffer_size, FORMAT, FORMAT_ARGS);
+    int len = snprintf(buffer, buffer_size, FORMAT, FORMAT_ARGS);
 
     if (len < 0) abort();
 
-    if (len >= buffer_size) {
+    if ((size_t)len >= buffer_size) {
         log_msg(lg, SN_LOG_LEVEL_ERROR, file, function, line,
                 "Too long message, try increasing the buffer size or decreasing message length!");
         return;
@@ -56,11 +56,11 @@ void loga_msg(SnAsyncLogger *lg, SnLogLevel level, const char *file, const char 
 
     char buffer[1024] = {0};
     size_t buffer_size = ARRAY_LEN(buffer);
-    size_t len = snprintf(buffer, buffer_size, FORMAT, FORMAT_ARGS);
+    int len = snprintf(buffer, buffer_size, FORMAT, FORMAT_ARGS);
 
     if (len < 0) abort();
 
-    if (len >= buffer_size) {
+    if ((size_t)len >= buffer_size) {
         loga_msg(lg, SN_LOG_LEVEL_ERROR, file, function, line,
                  "Too long message, try increasing the buffer size or decreasing message length!");
         return;

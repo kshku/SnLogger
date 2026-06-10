@@ -4,6 +4,8 @@
 char buffer[4096];
 
 void write_sink(const char *msg, size_t len, SnLogLevel level, void *data) {
+    (void)level;
+    (void)data;
     fwrite(msg, 1, len, stdout);
     fputc('\n', stdout);
 }
