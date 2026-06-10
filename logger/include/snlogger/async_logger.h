@@ -87,7 +87,7 @@ typedef struct SnAsyncLogger {
  * @note The buffer must remain valid for the lifetime of the logger.
  * @note This function does not allocate memory or start any threads.
  */
-SN_API void sn_async_logger_init(
+SN_LOGGER_API void sn_async_logger_init(
     SnAsyncLogger *logger, void *buffer, size_t buffer_size, SnSink *sinks, size_t sink_count);
 
 /**
@@ -98,7 +98,7 @@ SN_API void sn_async_logger_init(
  *
  * @param logger Pointer to the async logger context.
  */
-SN_API void sn_async_logger_deinit(SnAsyncLogger *logger);
+SN_LOGGER_API void sn_async_logger_deinit(SnAsyncLogger *logger);
 
 /**
  * @brief Set memory hooks for the async logger.
@@ -163,7 +163,7 @@ SN_FORCE_INLINE void sn_async_logger_set_level(SnAsyncLogger *logger, SnLogLevel
  * @note This function is not thread-safe unless lock hooks are installed
  *       or external synchronization is provided by the caller.
  */
-SN_API void sn_async_logger_log_va(SnAsyncLogger *logger, SnLogLevel level, const char *fmt, va_list args);
+SN_LOGGER_API void sn_async_logger_log_va(SnAsyncLogger *logger, SnLogLevel level, const char *fmt, va_list args);
 
 /**
  * @brief Enqueue a formatted log message.
@@ -201,7 +201,7 @@ SN_INLINE void sn_async_logger_log(SnAsyncLogger *logger, SnLogLevel level, cons
  * @note This function is not thread-safe unless lock hooks are installed
  *       or external synchronization is provided by the caller.
  */
-SN_API void sn_async_logger_log_raw(SnAsyncLogger *logger, SnLogLevel level, const char *msg, size_t len);
+SN_LOGGER_API void sn_async_logger_log_raw(SnAsyncLogger *logger, SnLogLevel level, const char *msg, size_t len);
 
 /**
  * @brief Process at max n queued log records.
@@ -217,7 +217,7 @@ SN_API void sn_async_logger_log_raw(SnAsyncLogger *logger, SnLogLevel level, con
  * @note This function is not thread-safe unless lock hooks are installed
  *       or external synchronization is provided by the caller.
  */
-SN_API size_t sn_async_logger_process_n(SnAsyncLogger *logger, size_t n);
+SN_LOGGER_API size_t sn_async_logger_process_n(SnAsyncLogger *logger, size_t n);
 
 /**
  * @brief Process queued log records.
@@ -253,7 +253,7 @@ SN_FORCE_INLINE size_t sn_async_logger_process(SnAsyncLogger *logger) {
  * @note This function is not thread-safe unless lock hooks are installed
  *       or external synchronization is provided by the caller.
  */
-SN_API size_t sn_async_logger_drain(SnAsyncLogger *logger);
+SN_LOGGER_API size_t sn_async_logger_drain(SnAsyncLogger *logger);
 
 /**
  * @brief Flush all sinks.
@@ -262,7 +262,7 @@ SN_API size_t sn_async_logger_drain(SnAsyncLogger *logger);
  *
  * @param logger Pointer to the async logger context.
  */
-SN_API void sn_async_logger_flush(SnAsyncLogger *logger);
+SN_LOGGER_API void sn_async_logger_flush(SnAsyncLogger *logger);
 
 /**
  * @brief Process all queued log records and flush all sinks.
@@ -274,6 +274,5 @@ SN_API void sn_async_logger_flush(SnAsyncLogger *logger);
  * @note Does not synchronize with producers unless user-provided locks
  *       guarantee it.
  */
-SN_API void sn_async_logger_drain_and_flush(SnAsyncLogger *logger);
+SN_LOGGER_API void sn_async_logger_drain_and_flush(SnAsyncLogger *logger);
 
-#undef SN_API
