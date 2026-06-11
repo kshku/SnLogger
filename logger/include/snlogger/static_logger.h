@@ -1,10 +1,10 @@
 #pragma once
 
 #include "snlogger/api.h"
-#include <sncore/defines.h>
 #include "snlogger/log_level.h"
 #include "snlogger/sink.h"
 
+#include <sncore/defines.h>
 #include <stdarg.h>
 
 /**
@@ -100,7 +100,8 @@ SN_FORCE_INLINE void sn_static_logger_set_level(SnStaticLogger *logger, SnLogLev
  *
  * @note The va_list is consumed by this function.
  */
-SN_LOGGER_API void sn_static_logger_log_va(SnStaticLogger *logger, SnLogLevel level, const char *fmt, va_list args);
+SN_LOGGER_API void
+    sn_static_logger_log_va(SnStaticLogger *logger, SnLogLevel level, const char *fmt, va_list args);
 
 /**
  * @brief Log a formatted message.
@@ -137,5 +138,6 @@ SN_INLINE void sn_static_logger_log(SnStaticLogger *logger, SnLogLevel level, co
  *
  * @note No formatting or null-termination is assumed.
  */
-SN_LOGGER_API void sn_static_logger_log_raw(SnStaticLogger *logger, SnLogLevel level, const char *msg, size_t len);
+SN_LOGGER_API void
+    sn_static_logger_log_raw(SnStaticLogger *logger, SnLogLevel level, const char *msg, size_t len);
 

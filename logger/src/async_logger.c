@@ -23,8 +23,7 @@ static SnLogRecordHeader *ring_buffer_allocate(SnAsyncLogger *logger, size_t siz
             && logger->ring_buffer.write_offset + size < logger->ring_buffer.read_offset)) {
         void *p = (char *)logger->ring_buffer.buffer + logger->ring_buffer.write_offset;
         void *aligned = (void *)SN_GET_ALIGNED(p, alignof(SnLogRecordHeader));
-        logger->ring_buffer.write_offset
-            += size - alignof(SnLogRecordHeader) + SN_PTR_DIFF(aligned, p);
+        logger->ring_buffer.write_offset += size - alignof(SnLogRecordHeader) + SN_PTR_DIFF(aligned, p);
         return (SnLogRecordHeader *)aligned;
     }
 
@@ -38,8 +37,7 @@ static SnLogRecordHeader *ring_buffer_allocate(SnAsyncLogger *logger, size_t siz
                 = (SnLogRecordHeader *)SN_GET_ALIGNED(ptr, alignof(SnLogRecordHeader));
             logger->ring_buffer.write_offset += SN_PTR_DIFF(wrap_mark, ptr);
             if (logger->ring_buffer.write_offset < logger->ring_buffer.size
-                && logger->ring_buffer.size - logger->ring_buffer.write_offset
-                       >= sizeof(SnLogRecordHeader))
+                && logger->ring_buffer.size - logger->ring_buffer.write_offset >= sizeof(SnLogRecordHeader))
                 wrap_mark->level = SN_LOG_LEVEL_FATAL + 1;
         }
         void *aligned = (void *)SN_GET_ALIGNED(logger->ring_buffer.buffer, alignof(SnLogRecordHeader));
@@ -180,13 +178,11 @@ size_t sn_async_logger_process_n(SnAsyncLogger *logger, size_t n) {
 
     while (logger->ring_buffer.read_offset != logger->ring_buffer.write_offset && count < n) {
         void *read_ptr = sn_ring_buffer_allocator_read_ptr(&logger->ring_buffer);
-        SnLogRecordHeader *record
-            = (SnLogRecordHeader *)SN_GET_ALIGNED(read_ptr, alignof(SnLogRecordHeader));
+        SnLogRecordHeader *record = (SnLogRecordHeader *)SN_GET_ALIGNED(read_ptr, alignof(SnLogRecordHeader));
         logger->ring_buffer.read_offset += SN_PTR_DIFF(record, read_ptr);
 
         if (logger->ring_buffer.read_offset >= logger->ring_buffer.size
-            || logger->ring_buffer.size - logger->ring_buffer.read_offset
-                       < sizeof(SnLogRecordHeader)) {
+            || logger->ring_buffer.size - logger->ring_buffer.read_offset < sizeof(SnLogRecordHeader)) {
             // Next record should start from 0 itself
             logger->ring_buffer.read_offset = 0;
             continue;

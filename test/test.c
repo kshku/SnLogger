@@ -13,7 +13,13 @@
     #include <unistd.h>
 #endif
 
-#define TEST_ASSERT(x) do { if (!(x)) { fprintf(stderr, "FAIL [%s:%d]: %s\n", __FILE__, __LINE__, #x); abort(); } } while(0)
+#define TEST_ASSERT(x)                                                     \
+    do {                                                                   \
+        if (!(x)) {                                                        \
+            fprintf(stderr, "FAIL [%s:%d]: %s\n", __FILE__, __LINE__, #x); \
+            abort();                                                       \
+        }                                                                  \
+    } while (0)
 
 #define MAX_LOGS 100000
 #define MAX_LEN 16

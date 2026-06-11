@@ -1,12 +1,12 @@
 #pragma once
 
 #include "snlogger/api.h"
-#include <sncore/defines.h>
-#include <sncore/types.h>
-#include <snmemory/ring_buffer.h>
 #include "snlogger/log_level.h"
 #include "snlogger/sink.h"
 
+#include <sncore/defines.h>
+#include <sncore/types.h>
+#include <snmemory/ring_buffer.h>
 #include <stdarg.h>
 
 /**
@@ -163,7 +163,8 @@ SN_FORCE_INLINE void sn_async_logger_set_level(SnAsyncLogger *logger, SnLogLevel
  * @note This function is not thread-safe unless lock hooks are installed
  *       or external synchronization is provided by the caller.
  */
-SN_LOGGER_API void sn_async_logger_log_va(SnAsyncLogger *logger, SnLogLevel level, const char *fmt, va_list args);
+SN_LOGGER_API void
+    sn_async_logger_log_va(SnAsyncLogger *logger, SnLogLevel level, const char *fmt, va_list args);
 
 /**
  * @brief Enqueue a formatted log message.
@@ -201,7 +202,8 @@ SN_INLINE void sn_async_logger_log(SnAsyncLogger *logger, SnLogLevel level, cons
  * @note This function is not thread-safe unless lock hooks are installed
  *       or external synchronization is provided by the caller.
  */
-SN_LOGGER_API void sn_async_logger_log_raw(SnAsyncLogger *logger, SnLogLevel level, const char *msg, size_t len);
+SN_LOGGER_API void
+    sn_async_logger_log_raw(SnAsyncLogger *logger, SnLogLevel level, const char *msg, size_t len);
 
 /**
  * @brief Process at max n queued log records.
