@@ -97,7 +97,7 @@ SnLogger does not:
 include(FetchContent)
 FetchContent_Declare(snlogger
     GIT_REPOSITORY https://github.com/kshku/SnLogger.git
-    GIT_TAG main
+    GIT_TAG <tag>  # e.g., v0.1.0
 )
 FetchContent_MakeAvailable(snlogger)
 
