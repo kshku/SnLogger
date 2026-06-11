@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sncore/defines.h>
-
 #include <stdarg.h>
 
 // TODO:
