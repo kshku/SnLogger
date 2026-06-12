@@ -68,9 +68,7 @@ typedef struct SnAsyncLogger {
     SnUnlockFn unlock; /**< Optional unlock function */
     void *lock_data; /**< User data passed to lock functions */
 
-    SnMemoryAllocateFn alloc; /**< Optional memory allocation hook */
-    SnMemoryFreeFn free; /**< Optional memory free hook */
-    void *mem_data; /**< User data passed to memory hooks */
+    SnMemoryAllocator *allocator; /**< Optional memory allocator to use (realloc is not used) */
 
     size_t dropped; /**< Number of logs dropped */
 } SnAsyncLogger;
@@ -101,20 +99,17 @@ SN_LOGGER_API void sn_async_logger_init(
 SN_LOGGER_API void sn_async_logger_deinit(SnAsyncLogger *logger);
 
 /**
- * @brief Set memory hooks for the async logger.
+ * @brief Set memory allocator for the async logger.
  *
  * @param logger Pointer to the async logger context.
  * @param alloc Memory allocation function.
  * @param free Memory free function.
  * @param data User-provided memory context.
  *
- * @note Optional. The async logger functions without memory hooks.
+ * @note Optional. The async logger functions without memory allocator.
  */
-SN_FORCE_INLINE void sn_async_logger_set_memory_hooks(
-    SnAsyncLogger *logger, SnMemoryAllocateFn alloc, SnMemoryFreeFn free, void *data) {
-    logger->alloc = alloc;
-    logger->free = free;
-    logger->mem_data = data;
+SN_FORCE_INLINE void sn_async_logger_set_memory_allocator(SnAsyncLogger *logger, SnMemoryAllocator *allocator) {
+    logger->allocator = allocator;
 }
 
 /**

@@ -1,10 +1,15 @@
 # Changelog
 
-## [0.1.0] — 2026-06-11
+## [0.2.0] - 2026-06-12
+
+## Changed
+- sn_async_logger_set_memory_hook changed to sn_async_logger_set_memory_allocator, taking SnMemoryAllocator
+
+## [0.1.0] - 2026-06-11
 
 - First release. See [0.0.0] section in CHANGELOG.md for full changelog.
 
-## [0.0.0] — 2025-12-10
+## [0.0.0] - 2025-12-10
 
 ### Added
 - Static logger with dedicated ring buffer

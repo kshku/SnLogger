@@ -53,17 +53,25 @@ static void flush_sink_flush(void *data) {
     fs->flush_count++;
 }
 
-static void *malloc_wrapper(size_t size, void *data) {
+static void *malloc_wrapper(void *data, uint64_t size, uint64_t align) {
     (void)data;
+    (void)align;
     void *p = malloc(size);
     if (!p) abort();
     return p;
 }
 
-static void free_wrapper(void *ptr, void *data) {
+static void free_wrapper(void *data, void *ptr) {
     (void)data;
     free(ptr);
 }
+
+static SnMemoryAllocator allocator = {
+    .data = NULL,
+    .alloc = malloc_wrapper,
+    .free = free_wrapper,
+    .realloc = NULL,
+};
 
 #ifndef SN_OS_WINDOWS
 typedef struct {
@@ -167,7 +175,7 @@ static void test_async_single_thread_ordering(void) {
 
     SnAsyncLogger al;
     sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
-    sn_async_logger_set_memory_hooks(&al, malloc_wrapper, free_wrapper, NULL);
+    sn_async_logger_set_memory_allocator(&al, &allocator);
 
     for (int i = 0; i < 1000; ++i) {
         sn_async_logger_log(&al, SN_LOG_LEVEL_INFO, "msg-%d", i);
@@ -270,7 +278,7 @@ static void test_async_multi_producer_ordering(void) {
 
     SnAsyncLogger al;
     sn_async_logger_init(&al, buffer, sizeof(buffer), sinks, 1);
-    sn_async_logger_set_memory_hooks(&al, malloc_wrapper, free_wrapper, NULL);
+    sn_async_logger_set_memory_allocator(&al, &allocator);
 
     MutexCtx mctx;
     pthread_mutex_init(&mctx.mutex, NULL);

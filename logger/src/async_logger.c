@@ -50,10 +50,11 @@ static SnLogRecordHeader *ring_buffer_allocate(SnAsyncLogger *logger, size_t siz
 }
 
 static SnLogRecordHeapNode *try_heap_allocation(SnAsyncLogger *logger, size_t len) {
-    if (!logger->alloc) return NULL;
+    if (!logger->allocator) return NULL;
 
     size_t alloc_size = sizeof(SnLogRecordHeapNode) + sizeof(SnLogRecordHeader) + len;
-    SnLogRecordHeapNode *node = logger->alloc(alloc_size, logger->mem_data);
+    SnLogRecordHeapNode *node
+        = logger->allocator->alloc(logger->allocator->data, alloc_size, alignof(SnLogRecordHeader));
 
     if (!node) return NULL;
 
@@ -227,7 +228,7 @@ size_t sn_async_logger_process_n(SnAsyncLogger *logger, size_t n) {
             logger->sinks[i].write((const char *)(node->record + 1), node->record->len,
                                    node->record->level, logger->sinks[i].data);
 
-        if (logger->free) logger->free(node, logger->mem_data);
+        if (logger->allocator->free) logger->allocator->free(logger->allocator->data, node);
         ++count;
 
         async_logger_lock(logger);
