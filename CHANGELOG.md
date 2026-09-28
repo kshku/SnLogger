@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.1] - 2026-09-28
+
+### Fixed
+- Fix SN_LOGGER_API in api.h, which branched on SN_LOGGER_EXPORT, a macro
+  nothing defines. A shared build exported no symbols at all and could not be
+  linked against
+
+### Added
+- Build the tests against a shared library in CI, which is what catches a
+  symbol that is missing an export macro
+
 ## [0.2.0] - 2026-06-12
 
 ## Changed
