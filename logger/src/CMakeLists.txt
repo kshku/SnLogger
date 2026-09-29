@@ -1,4 +1,5 @@
 set(HEADERFILES
+    console_sink.h
     log_level.h
     snlogger.h
     formatter.h
@@ -8,6 +9,7 @@ set(HEADERFILES
 )
 
 set(SRCS
+    console_sink.c
     formatter.c
     static_logger.c
     async_logger.c
