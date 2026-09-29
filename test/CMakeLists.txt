@@ -15,6 +15,11 @@ target_link_libraries(sn_logger_test PRIVATE snlogger)
 
 add_test(NAME sn_logger_test COMMAND sn_logger_test)
 
+add_executable(console_sink console_sink.c)
+target_link_libraries(console_sink PRIVATE snlogger)
+
+add_test(NAME console_sink COMMAND console_sink)
+
 add_executable(test1 test1.c)
 target_link_libraries(test1 PRIVATE snlogger)
 
