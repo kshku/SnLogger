@@ -21,6 +21,7 @@ static void console_sink_flush(void *data);
 static SnConsoleColor level_color(SnLogLevel level);
 static SnConsoleSink *console_of(void *data);
 static void write_prefix(FILE *stream, const char *sgr, int mode);
+static void write_formatted(SnConsoleSink *console, const char *sgr, int mode, const char *fmt, va_list args);
 static void append_sgr(char *buf, size_t size, const char *fmt, ...);
 static bool console_stream_is_terminal(FILE *stream);
 static bool color_effective(const SnConsoleSink *console);
@@ -69,30 +70,27 @@ void sn_console_sink_set_level_color(SnConsoleSink *console, bool enable) {
     if (console) console->level_color = enable;
 }
 
-void sn_console_write(
-    SnConsoleSink *console, SnConsoleColor fg, SnConsoleColor bg, int mode, const char *fmt, ...) {
+void sn_console_write_va(
+    SnConsoleSink *console, SnConsoleColor fg, SnConsoleColor bg, int mode, const char *fmt, va_list args) {
     if (!console || !fmt) return;
 
     /* zeroed, because append_sgr appends to whatever is already there */
     char sgr[SGR_BUFFER_SIZE] = {0};
     append_sgr(sgr, sizeof(sgr), "%d;%d", (int)bg + 10, (int)fg);
 
-    FILE *stream = console->stream ? console->stream : stdout;
+    write_formatted(console, sgr, mode, fmt, args);
+}
+
+void sn_console_write(
+    SnConsoleSink *console, SnConsoleColor fg, SnConsoleColor bg, int mode, const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-
-    if (color_effective(console)) {
-        write_prefix(stream, sgr, mode);
-        vfprintf(stream, fmt, args);
-        fputs(RESET, stream);
-    } else {
-        vfprintf(stream, fmt, args);
-    }
-
+    sn_console_write_va(console, fg, bg, mode, fmt, args);
     va_end(args);
 }
 
-void sn_console_write_rgb(SnConsoleSink *console, SnRgbColor fg, SnRgbColor bg, int mode, const char *fmt, ...) {
+void sn_console_write_rgb_va(
+    SnConsoleSink *console, SnRgbColor fg, SnRgbColor bg, int mode, const char *fmt, va_list args) {
     if (!console || !fmt) return;
 
     char sgr[SGR_BUFFER_SIZE] = {0};
@@ -109,9 +107,26 @@ void sn_console_write_rgb(SnConsoleSink *console, SnRgbColor fg, SnRgbColor bg, 
         append_sgr(sgr, sizeof(sgr), "39");
     }
 
-    FILE *stream = console->stream ? console->stream : stdout;
+    write_formatted(console, sgr, mode, fmt, args);
+}
+
+void sn_console_write_rgb(SnConsoleSink *console, SnRgbColor fg, SnRgbColor bg, int mode, const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
+    sn_console_write_rgb_va(console, fg, bg, mode, fmt, args);
+    va_end(args);
+}
+
+void sn_console_flush(SnConsoleSink *console) {
+    if (!console) return;
+    fflush(console->stream ? console->stream : stdout);
+}
+
+/* The one place a record is actually emitted. The caller has already built the
+ * color parameter list, so the palette, the rgb and the va_list forms all share
+ * this and cannot drift apart. */
+static void write_formatted(SnConsoleSink *console, const char *sgr, int mode, const char *fmt, va_list args) {
+    FILE *stream = console->stream ? console->stream : stdout;
 
     if (color_effective(console)) {
         write_prefix(stream, sgr, mode);
@@ -120,13 +135,6 @@ void sn_console_write_rgb(SnConsoleSink *console, SnRgbColor fg, SnRgbColor bg, 
     } else {
         vfprintf(stream, fmt, args);
     }
-
-    va_end(args);
-}
-
-void sn_console_flush(SnConsoleSink *console) {
-    if (!console) return;
-    fflush(console->stream ? console->stream : stdout);
 }
 
 /* Emit the opening escape: any graphics modes, then the color parameters, then

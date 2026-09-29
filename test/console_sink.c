@@ -1,6 +1,7 @@
 #include <sncore/defines.h>
 #include <snlogger/console_sink.h>
 #include <snlogger/static_logger.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -261,6 +262,76 @@ static void test_sink_works_through_a_logger(void) {
     fclose(out);
 }
 
+/* A caller that already holds a va_list has to sit behind something variadic,
+ * which is the whole reason the _va form exists. These stand in for that. */
+static void forward_palette(SnConsoleSink *console, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    sn_console_write_va(console, SN_CONSOLE_COLOR_RED, SN_CONSOLE_COLOR_DEFAULT, SN_CONSOLE_MODE_BOLD, fmt, args);
+    va_end(args);
+}
+
+static void forward_rgb(SnConsoleSink *console, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    sn_console_write_rgb_va(console, SN_RGB(1, 2, 3), SN_RGB_DEFAULT, SN_CONSOLE_MODE_ITALIC, fmt, args);
+    va_end(args);
+}
+
+static void test_write_va_matches_write(void) {
+    FILE *out = open_scratch();
+
+    SnConsoleSink console;
+    sn_console_sink_init(&console, out);
+    sn_console_sink_set_color(&console, SN_CONSOLE_COLOR_ON);
+
+    sn_console_write(&console, SN_CONSOLE_COLOR_RED, SN_CONSOLE_COLOR_DEFAULT, SN_CONSOLE_MODE_BOLD,
+                     "n=%d %s", 7, "x");
+
+    char *variadic = slurp(out);
+    fclose(out);
+
+    out = open_scratch();
+    sn_console_sink_init(&console, out);
+    sn_console_sink_set_color(&console, SN_CONSOLE_COLOR_ON);
+
+    forward_palette(&console, "n=%d %s", 7, "x");
+
+    char *from_va = slurp(out);
+    fclose(out);
+
+    /* the _va form has to produce byte for byte what the variadic form does,
+     * otherwise a caller forwarding a va_list gets different output */
+    TEST_ASSERT(strcmp(variadic, "\x1b[1;49;31mn=7 x\x1b[0m") == 0);
+    TEST_ASSERT(strcmp(from_va, variadic) == 0);
+}
+
+static void test_write_rgb_va_matches_write_rgb(void) {
+    FILE *out = open_scratch();
+
+    SnConsoleSink console;
+    sn_console_sink_init(&console, out);
+    sn_console_sink_set_color(&console, SN_CONSOLE_COLOR_ON);
+
+    sn_console_write_rgb(&console, SN_RGB(1, 2, 3), SN_RGB_DEFAULT, SN_CONSOLE_MODE_ITALIC, "%d-%d", 4, 5);
+
+    char *variadic = slurp(out);
+    fclose(out);
+
+    out = open_scratch();
+    sn_console_sink_init(&console, out);
+    sn_console_sink_set_color(&console, SN_CONSOLE_COLOR_ON);
+
+    forward_rgb(&console, "%d-%d", 4, 5);
+
+    char *from_va = slurp(out);
+    fclose(out);
+
+    TEST_ASSERT(strstr(from_va, "38;2;1;2;3") != NULL);
+    TEST_ASSERT(strstr(from_va, "4-5") != NULL);
+    TEST_ASSERT(strcmp(from_va, variadic) == 0);
+}
+
 static void test_std_sink_is_usable(void) {
     /* the ready made one has to work with no init call at all */
     TEST_ASSERT(sn_console_std_sink.sink.write != NULL);
@@ -282,6 +353,12 @@ static void test_null_sinks_are_ignored(void) {
     sn_console_sink_set_level_color(NULL, true);
     sn_console_write(NULL, SN_CONSOLE_COLOR_RED, SN_CONSOLE_COLOR_DEFAULT, 0, "dropped");
     sn_console_write_rgb(NULL, SN_RGB(1, 2, 3), SN_RGB_DEFAULT, 0, "dropped");
+    {
+        va_list none;
+        memset(&none, 0, sizeof(none));
+        sn_console_write_va(NULL, SN_CONSOLE_COLOR_RED, SN_CONSOLE_COLOR_DEFAULT, 0, "dropped", none);
+        sn_console_write_rgb_va(NULL, SN_RGB(1, 2, 3), SN_RGB_DEFAULT, 0, "dropped", none);
+    }
     sn_console_flush(NULL);
 }
 
@@ -293,6 +370,8 @@ int main(void) {
     test_write_rgb();
     test_write_rgb_defaults();
     test_write_rgb_without_color();
+    test_write_va_matches_write();
+    test_write_rgb_va_matches_write_rgb();
     test_sink_write_uses_len_not_strlen();
     test_level_color();
     test_level_color_can_be_turned_off();

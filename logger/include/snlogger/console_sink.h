@@ -144,6 +144,23 @@ SN_LOGGER_API void sn_console_write(
     SnConsoleSink *console, SnConsoleColor fg, SnConsoleColor bg, int mode, const char *fmt, ...);
 
 /**
+ * @brief Write one formatted record from an argument list.
+ *
+ * The same as sn_console_write, taking a va_list rather than being variadic,
+ * for a caller that has already collected its arguments and cannot forward
+ * them through a plain ... .
+ *
+ * @param console The sink.
+ * @param fg The foreground color.
+ * @param bg The background color.
+ * @param mode The graphics mode, a bitwise or of SnConsoleMode.
+ * @param fmt A printf style format string.
+ * @param args The arguments for @p fmt.
+ */
+SN_LOGGER_API void sn_console_write_va(
+    SnConsoleSink *console, SnConsoleColor fg, SnConsoleColor bg, int mode, const char *fmt, va_list args);
+
+/**
  * @brief Write one formatted record in 24 bit color.
  *
  * The same as sn_console_write, with the two colors given as RGB values. A
@@ -159,6 +176,22 @@ SN_LOGGER_API void sn_console_write(
  */
 SN_LOGGER_API void sn_console_write_rgb(
     SnConsoleSink *console, SnRgbColor fg, SnRgbColor bg, int mode, const char *fmt, ...);
+
+/**
+ * @brief Write one formatted 24 bit record from an argument list.
+ *
+ * The same as sn_console_write_rgb, taking a va_list rather than being
+ * variadic.
+ *
+ * @param console The sink.
+ * @param fg The foreground color, or SN_RGB_DEFAULT.
+ * @param bg The background color, or SN_RGB_DEFAULT.
+ * @param mode The graphics mode, a bitwise or of SnConsoleMode.
+ * @param fmt A printf style format string.
+ * @param args The arguments for @p fmt.
+ */
+SN_LOGGER_API void sn_console_write_rgb_va(
+    SnConsoleSink *console, SnRgbColor fg, SnRgbColor bg, int mode, const char *fmt, va_list args);
 
 /**
  * @brief Flush the console sink's stream.
