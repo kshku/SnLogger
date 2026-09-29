@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.2] - 2026-09-28
+
+### Changed
+- SnCore is pinned to v0.3.1, up from v0.2.0
+- SnMemory is pinned to v0.3.2, up from v0.2.0
+
 ## [0.3.1] - 2026-09-28
 
 ### Added
