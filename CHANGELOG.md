@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.3] - 2026-09-28
+
+### Fixed
+- sn_async_logger_process() passed -1 where sn_async_logger_process_n() takes a
+  size_t. Converting a negative int to size_t is implementation defined rather
+  than a plain wrap on every platform, and SIZE_MAX states the same intent at
+  the type it is used at
+
 ## [0.3.2] - 2026-09-28
 
 ### Changed

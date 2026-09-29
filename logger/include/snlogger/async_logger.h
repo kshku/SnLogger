@@ -230,7 +230,11 @@ SN_LOGGER_API size_t sn_async_logger_process_n(SnAsyncLogger *logger, size_t n);
  *       or external synchronization is provided by the caller.
  */
 SN_FORCE_INLINE size_t sn_async_logger_process(SnAsyncLogger *logger) {
-    return sn_async_logger_process_n(logger, -1);
+    /* SIZE_MAX, not -1. The bound is only ever compared as "count < n", so
+     * SIZE_MAX means unbounded, but passing -1 would convert a negative int to
+     * size_t, which is implementation defined rather than a plain wrap on every
+     * platform. SIZE_MAX says what it means at the type it is used at. */
+    return sn_async_logger_process_n(logger, SIZE_MAX);
 }
 
 /**
