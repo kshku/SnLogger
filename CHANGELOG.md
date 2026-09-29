@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.1] - 2026-09-28
+
+### Added
+- sn_console_write_va and sn_console_write_rgb_va, which take a va_list rather
+  than being variadic. A caller that has already collected its arguments cannot
+  forward them through a plain ... , and previously had to format into its own
+  buffer first, which brings back the truncation handling the console sink
+  exists to avoid
+
+### Changed
+- The palette, the rgb and the va_list forms now share one emit path, so they
+  cannot drift apart in how they build or omit the escape codes
+
 ## [0.3.0] - 2026-09-28
 
 ### Added
