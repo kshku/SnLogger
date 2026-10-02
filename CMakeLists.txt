@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.15...3.31)
 
-project(SnLogger VERSION 0.3.4 DESCRIPTION "A logging library written in C" LANGUAGES C)
+project(SnLogger VERSION 0.3.5 DESCRIPTION "A logging library written in C" LANGUAGES C)
 
 include(FetchContent)
 FetchContent_Declare(sncore
     GIT_REPOSITORY https://github.com/kshku/SnCore.git
-    GIT_TAG v0.3.1
+    GIT_TAG v0.3.2
 )
 FetchContent_Declare(snmemory
     GIT_REPOSITORY https://github.com/kshku/SnMemory.git
-    GIT_TAG v0.3.2
+    GIT_TAG v0.3.5
 )
 FetchContent_MakeAvailable(sncore snmemory)
 
