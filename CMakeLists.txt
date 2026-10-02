@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15...3.31)
 
-project(SnLogger VERSION 0.3.3 DESCRIPTION "A logging library written in C" LANGUAGES C)
+project(SnLogger VERSION 0.3.4 DESCRIPTION "A logging library written in C" LANGUAGES C)
 
 include(FetchContent)
 FetchContent_Declare(sncore
@@ -29,6 +29,7 @@ set(msvc_comp "$<COMPILE_LANG_AND_ID:C,MSVC>")
 # target_compile_features(sn_logger_configs INTERFACE c_std_17)
 
 target_compile_options(sn_logger_configs INTERFACE "$<${gcc_clang_comp}:-Wall;-Wextra;-Wformat;-Wuninitialized;-Wpedantic>")
+target_compile_options(sn_logger_configs INTERFACE "$<${gcc_clang_comp}:-Wconversion;-Wsign-conversion>")
 
 target_compile_options(sn_logger_configs INTERFACE "$<${gcc_clang_comp}:-fvisibility=hidden>")
 
