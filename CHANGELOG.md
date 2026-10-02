@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.4] - 2026-10-02
+
+### Changed
+- -Wconversion and -Wsign-conversion are on for gcc and clang. The code was
+  already clean of both
+
 ## [0.3.3] - 2026-09-28
 
 ### Fixed
