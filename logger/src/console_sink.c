@@ -179,7 +179,7 @@ static void console_sink_open(void *data) {
     /* Deliberately empty. A terminal can come and go between writes, for
      * instance when a process is daemonized, so the color mode is resolved on
      * every write rather than cached here. */
-    (void)data;
+    SN_UNUSED(data);
 }
 
 static void console_sink_write(const char *msg, size_t len, SnLogLevel level, void *data) {
@@ -207,7 +207,7 @@ static void console_sink_close(void *data) {
      * calling this, so there is nothing left to do. Closing here would fclose a
      * stream the caller still owns, and a later flush would then be undefined
      * behaviour. A sink that opened a file of its own would close it here. */
-    (void)data;
+    SN_UNUSED(data);
 }
 
 static void console_sink_flush(void *data) {
